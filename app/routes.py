@@ -15,12 +15,12 @@ import app.models as models  # type: ignore # noqa: F401, E402
 
 @app.route('/')
 def root():
-    return render_template('home.html', page_title="HOME")
+    return render_template('home.html')
 
 
 @app.route('/about')
 def about():
-    return render_template('about.html', page_title="ABOUT")
+    return render_template('about.html')
 
 
 @app.route('/all_pizzas')
