@@ -1,0 +1,15 @@
+<!-- templates/all_platforms.html -->
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h2>Platforms</h2>
+    {% if platforms %}
+        <ul>
+        {% for platform in platforms %}
+            <li>{{ platform.PlatformID }}: {{ platform.PlatformName }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No platforms found.</p>
+    {% endif %}
+{% endblock %}

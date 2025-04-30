@@ -4,10 +4,10 @@ from app.routes import db
 PizzaTopping = db.Table('PizzaTopping',
     db.Column('PizzaID', db.Integer, db.ForeignKey('Pizza.PizzaID')),  # noqa E128
     db.Column('ToppingID', db.Integer, db.ForeignKey('Topping.ToppingID'))
-)  # noqa: E501
+)  # noqa E501
 
 
-class Game(db.Model):
+class Games(db.Model):
     __tablename__ = 'Games'
 
     GameID = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -17,46 +17,46 @@ class Game(db.Model):
     GamePrice = db.Column(db.Float)
     GameImage = db.Column(db.String(255))
 
-    categories = db.relationship('Category', secondary='GameCategories', back_populates='games')
-    platforms = db.relationship('Platform', secondary='GamePlatforms', back_populates='games')
-    system_requirements = db.relationship('SystemRequirement', back_populates='game', cascade="all, delete-orphan")
+    categories = db.relationship('Categories', secondary='GameCategories', back_populates='games')
+    platforms = db.relationship('Platforms', secondary='GamePlatforms', back_populates='games')
+    system_requirements = db.relationship('SystemRequirements', back_populates='games', cascade="all, delete-orphan")
 
 
-class Category(db.Model):
+class Categories(db.Model):
     __tablename__ = 'Categories'
 
     CategoryID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     CategoryName = db.Column(db.String(100), nullable=False)
     CategoryDescription = db.Column(db.Text)
 
-    games = db.relationship('Game', secondary='GameCategories', back_populates='categories')
+    games = db.relationship('Games', secondary='GameCategories', back_populates='categories')
 
 
-class GameCategory(db.Model):
+class GameCategories(db.Model):
     __tablename__ = 'GameCategories'
 
     GameID = db.Column(db.Integer, db.ForeignKey('Games.GameID', ondelete='CASCADE'), primary_key=True)
     CategoryID = db.Column(db.Integer, db.ForeignKey('Categories.CategoryID', ondelete='CASCADE'), primary_key=True)
 
 
-class Platform(db.Model):
+class Platforms(db.Model):
     __tablename__ = 'Platforms'
 
     PlatformID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     PlatformName = db.Column(db.String(100), nullable=False)
     PlatformDescription = db.Column(db.Text)
 
-    games = db.relationship('Game', secondary='GamePlatforms', back_populates='platforms')
+    games = db.relationship('Games', secondary='GamePlatforms', back_populates='platforms')
 
 
-class GamePlatform(db.Model):
+class GamePlatforms(db.Model):
     __tablename__ = 'GamePlatforms'
 
     GameID = db.Column(db.Integer, db.ForeignKey('Games.GameID', ondelete='CASCADE'), primary_key=True)
     PlatformID = db.Column(db.Integer, db.ForeignKey('Platforms.PlatformID', ondelete='CASCADE'), primary_key=True)
 
 
-class SystemRequirement(db.Model):
+class SystemRequirements(db.Model):
     __tablename__ = 'SystemRequirements'
 
     RequirementsID = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -68,7 +68,7 @@ class SystemRequirement(db.Model):
     GPU = db.Column(db.String(100))
     Storage = db.Column(db.String(50))
 
-    game = db.relationship('Game', back_populates='system_requirements')
+    games = db.relationship('Games', back_populates='system_requirements')
 
 
 # class Pizza(db.Model):

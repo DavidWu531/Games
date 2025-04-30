@@ -6,11 +6,27 @@ import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 db = SQLAlchemy()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, "pizza.db")  # noqa: E501
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, "games.db")  # noqa: E501
 db.init_app(app)
 
 
 import app.models as models  # type: ignore # noqa: F401, E402
+
+
+@app.route('/')
+def root():
+    return render_template('home.html')
+
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
+@app.route('/all_platforms')
+def all_platforms():
+    platforms = models.Platforms.query.all()
+    return render_template("all_platforms.html", platforms=platforms)
 
 
 # def execute_query(query, params=(), fetchone=False, fetchall=False,
@@ -36,19 +52,3 @@ import app.models as models  # type: ignore # noqa: F401, E402
 #     finally:
 #         conn.close()
 #     return result
-
-
-@app.route('/')
-def root():
-    return render_template('home.html')
-
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-
-@app.route('/all_platforms')
-def all_platforms():
-    platforms = db.get_or_404(Platforms, PlatformID)
-    return render_template("all_categories.html", platforms=platforms)
