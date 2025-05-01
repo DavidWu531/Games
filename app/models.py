@@ -7,6 +7,18 @@ PizzaTopping = db.Table('PizzaTopping',
 )  # noqa E501
 
 
+GameCategories = db.Table('GameCategories',
+    db.Column('GameID', db.Integer, db.ForeignKey('Games.GameID', ondelete='CASCADE')),
+    db.Column('CategoryID', db.Integer, db.ForeignKey('Categories.CategoryID', ondelete='CASCADE'))
+)
+
+GamePlatforms = db.Table('GamePlatforms',
+    db.Column('GameID',db.Integer, db.ForeignKey('Games.GameID', ondelete='CASCADE')),
+    db.Column('PlatformID', db.Integer, db.ForeignKey('Platforms.PlatformID', ondelete='CASCADE'))
+
+GamePlatform
+
+
 class Games(db.Model):
     __tablename__ = 'Games'
 
@@ -21,6 +33,9 @@ class Games(db.Model):
     platforms = db.relationship('Platforms', secondary='GamePlatforms', back_populates='games')
     system_requirements = db.relationship('SystemRequirements', back_populates='games', cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f'<Game {self.name}>'
+
 
 class Categories(db.Model):
     __tablename__ = 'Categories'
@@ -31,12 +46,8 @@ class Categories(db.Model):
 
     games = db.relationship('Games', secondary='GameCategories', back_populates='categories')
 
-
-class GameCategories(db.Model):
-    __tablename__ = 'GameCategories'
-
-    GameID = db.Column(db.Integer, db.ForeignKey('Games.GameID', ondelete='CASCADE'), primary_key=True)
-    CategoryID = db.Column(db.Integer, db.ForeignKey('Categories.CategoryID', ondelete='CASCADE'), primary_key=True)
+    def __repr__(self):
+        return f'<Category {self.name}>'
 
 
 class Platforms(db.Model):
@@ -48,12 +59,8 @@ class Platforms(db.Model):
 
     games = db.relationship('Games', secondary='GamePlatforms', back_populates='platforms')
 
-
-class GamePlatforms(db.Model):
-    __tablename__ = 'GamePlatforms'
-
-    GameID = db.Column(db.Integer, db.ForeignKey('Games.GameID', ondelete='CASCADE'), primary_key=True)
-    PlatformID = db.Column(db.Integer, db.ForeignKey('Platforms.PlatformID', ondelete='CASCADE'), primary_key=True)
+    def __repr__(self):
+        return f'<Platform {self.name}>'
 
 
 class SystemRequirements(db.Model):
@@ -69,6 +76,20 @@ class SystemRequirements(db.Model):
     Storage = db.Column(db.String(50))
 
     games = db.relationship('Games', back_populates='system_requirements')
+
+    def __repr__(self):
+        return f'<SystemRequirement {self.Type} for Game {self.GameID}>'
+
+class GamePlatformDetails(db.Model):
+    __tablename__ = "GamePlatformDetails"
+
+    GameID = db.Column(db.Integer, db.ForeignKey('Games.GameID', ondelete='CASCADE'), nullable=False)
+    PlatformID = db.Column(db.Integer, db.ForeignKey('Platforms.PlatformID', ondelete='CASCADE'), nullable=False)
+    Price = db.Column(db.Float)
+    ReleaseDate = db.Column(db.String(10))
+
+    games = db.relationship('Games', secondary='Game', back_populates='games')
+    platforms = db.relationship('Platforms', secondary='GamePlatforms', back_populates='games')
 
 
 # class Pizza(db.Model):
