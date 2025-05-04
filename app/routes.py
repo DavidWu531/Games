@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template, abort  # noqa: F401
+from flask import render_template, abort, redirect  # noqa: F401
 from flask_sqlalchemy import SQLAlchemy
 import os
 
@@ -14,8 +14,13 @@ import app.models as models  # type: ignore # noqa: F401, E402
 
 
 @app.route('/')
-def root():
+def home_page():
     return render_template('home.html')
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return render_template('404.html'), 404
 
 
 @app.route('/about')
@@ -23,10 +28,17 @@ def about():
     return render_template('about.html')
 
 
-@app.route('/all_platforms')
-def all_platforms():
-    platforms = models.Platforms.query.all()
-    return render_template("all_platforms.html", platforms=platforms)
+@app.route('/platform/', defaults={'id': None})
+@app.route('/platform/<int:id>')
+def platform(id):
+    platform = None
+    if id is None:
+        return redirect("/platform/0")
+    elif id == 0:
+        platform = models.Platforms.query.all()
+        return render_template("all_platforms.html", platform=platform)
+    else:
+        pass
 
 
 # def execute_query(query, params=(), fetchone=False, fetchall=False,

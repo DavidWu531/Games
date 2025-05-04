@@ -102,6 +102,21 @@ class GamePlatformDetails(db.Model):
         return f">GamePlatformDetails {self.GameID} for Platform {self.PlatformID}"
 
 
+class Reviews(db.Model):
+    __tablename__ = "Reviews"
+    __tableargs__ = (
+        db.CheckConstraint("Rating BETWEEN 1 AND 5", name="check_rating_between_1_and_5")
+    )
+
+    ReviewID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    UserID = db.Column(db.Integer, db.ForeignKey("Accounts.AccountID", ondelete="CASCADE"), nullable=False)
+    GameID = db.Column(db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE"), nullable=False)
+    Rating = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f"<Reviews {self.GameID} {self.ReviewID} for {self.GameID}"
+
+
 # class Pizza(db.Model):
 #     __tablename__ = "Pizza"
 #     id = db.Column(db.Integer, primary_key = True)  
