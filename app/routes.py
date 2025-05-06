@@ -38,7 +38,15 @@ def platform(id):
         platform = models.Platforms.query.all()
         return render_template("all_platforms.html", platform=platform)
     else:
-        pass
+        try:
+            platform = models.Platforms.query.get_or_404(id)
+        except OverflowError:
+            return render_template("404.html"), 404
+
+        if platform is None:
+            return render_template("404.html"), 404
+        else:
+            return render_template('all_platforms.html', platform=platform)
 
 
 # def execute_query(query, params=(), fetchone=False, fetchall=False,
