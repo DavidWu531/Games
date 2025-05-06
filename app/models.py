@@ -25,9 +25,8 @@ class Games(db.Model):
 
     GameID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     GameName = db.Column(db.String(255), nullable=False)
-    GameDescription = db.Column(db.Text)
-    GameReleaseDate = db.Column(db.Date)
-    GamePrice = db.Column(db.Float)
+    GameDescription = db.Column(db.String(255))
+    GameDeveloper = db.Column(db.String(255))
     GameImage = db.Column(db.String(255))
 
     categories = db.relationship("Categories", secondary="GameCategories", back_populates="games")
@@ -44,7 +43,7 @@ class Categories(db.Model):
 
     CategoryID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     CategoryName = db.Column(db.String(100), nullable=False)
-    CategoryDescription = db.Column(db.Text)
+    CategoryDescription = db.Column(db.String(255))
 
     games = db.relationship("Games", secondary="GameCategories", back_populates="categories")
 
@@ -57,7 +56,7 @@ class Platforms(db.Model):
 
     PlatformID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     PlatformName = db.Column(db.String(100), nullable=False)
-    PlatformDescription = db.Column(db.Text)
+    PlatformDescription = db.Column(db.String(255))
 
     games = db.relationship("Games", secondary="GamePlatforms", back_populates="platforms")
     game_platform_details = db.relationship("GamePlatformDetails", back_populates="platforms", cascade="all, delete-orphan")

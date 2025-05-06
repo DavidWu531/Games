@@ -1,0 +1,15 @@
+<!-- templates/all_games.html -->
+{% extends 'layout.html' %}
+
+{% block content %}
+    <h2>Games</h2>
+    {% if games %}
+        <ul>
+        {% for game in games %}
+            <li>{{ game.GameID }}: {{ game.GameName }} by {{ game.GameDeveloper }}</li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No games found.</p>
+    {% endif %}
+{% endblock %}
