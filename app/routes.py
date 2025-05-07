@@ -12,29 +12,16 @@ db.init_app(app)
 
 import app.models as models  # type: ignore # noqa: F401, E402
 
-# def execute_query(query, params=(), fetchone=False, fetchall=False,
-#                   commit=False):
-#     conn = sqlite3.connect('beds.db')
-#     cur = conn.cursor()
-#     try:  # Execute a query with parameters
-#         cur.execute(query, params)
-#         if commit:
-#             conn.commit()
 
-#         if fetchone:
-#             result = cur.fetchone()
-#         elif fetchall:
-#             result = cur.fetchall()
-#         else:
-#             result = None
-#     except sqlite3.Error as e:
-#         # Return 500 Page when an error occurs
-#         str(e).split().clear()
-#         result = None
-#         return render_template("500.html"), 500
-#     finally:
-#         conn.close()
-#     return result
+def execute_query(model, id: int = 0):
+    try:
+        if not id:
+            return model.query.all()
+
+        record = model.query.get_or_404(id)
+        return [record]
+    except OverflowError:
+        abort(404)
 
 
 @app.route('/')
@@ -58,18 +45,8 @@ def platform(id):
     platforms = None
     if id is None:
         return redirect("/platform/0")
-    elif id == 0:
-        platforms = models.Platforms.query.all()
-    else:
-        try:
-            platform_obj = models.Platforms.query.get_or_404(id)
-        except OverflowError:
-            return render_template("404.html"), 404
 
-        if platform_obj is None:
-            return render_template("404.html"), 404
-        else:
-            platforms = [platform_obj]
+    platforms = execute_query(models.Platforms, id)
     return render_template('all_platforms.html', platforms=platforms)
 
 
@@ -79,16 +56,17 @@ def game(id):
     games = None
     if id is None:
         return redirect("/game/0")
-    elif id == 0:
-        games = models.Games.query.all()
-    else:
-        try:
-            game_obj = models.Games.query.get_or_404(id)
-        except OverflowError:
-            return render_template("404.html"), 404
 
-        if game_obj is None:
-            return render_template("404.html"), 404
-        else:
-            games = [game_obj]
+    games = execute_query(models.Games, id)
     return render_template('all_games.html', games=games)
+
+
+@app.route('/category/', defaults={'id': None})
+@app.route('/category/<int:id>')
+def category(id):
+    categories = None
+    if id is None:
+        return redirect("/category/0")
+
+    categories = execute_query(models.Categories, id)
+    return render_template('categorys.html', categories=categories)

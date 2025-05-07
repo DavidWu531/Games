@@ -5,3 +5,40 @@
 body {
     background-color: lightblue;
 }
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    background-color: #808080;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
+
+li {
+    float: left;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: #111;
+}
+
+a {
+    display: block;
+    padding: 8px;
+    background-color: #808080;
+}
+
+
+.active {
+    background-color: #04aa6d;
+}
