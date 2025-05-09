@@ -7,6 +7,7 @@
         <ul>
         {% for game in games %}
             <li>{{ game.GameID }}: {{ game.GameName }} by {{ game.GameDeveloper }}</li>
+            <br>
         {% endfor %}
         </ul>
     {% else %}
