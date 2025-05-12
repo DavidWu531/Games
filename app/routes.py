@@ -1,16 +1,16 @@
 from app import app
-from flask import render_template, abort, redirect  # noqa: F401
+from flask import render_template, abort, redirect
 from flask_sqlalchemy import SQLAlchemy
 import os
 
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 db = SQLAlchemy()
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, "games.db")  # noqa: E501
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, "games.db")
 db.init_app(app)
 
 
-import app.models as models  # type: ignore # noqa: F401, E402
+import app.models as models
 
 
 def execute_query(model, id: int = 0):
@@ -47,7 +47,11 @@ def platform(id):
         return redirect("/platform/0")
 
     platforms = execute_query(models.Platforms, id)
-    return render_template('all_platforms.html', platforms=platforms)
+
+    if id == 0:
+        return render_template('all_platforms.html', platforms=platforms)
+    else:
+        return render_template('individual_platforms.html', platforms=platforms)
 
 
 @app.route('/game/', defaults={'id': None})
@@ -58,7 +62,11 @@ def game(id):
         return redirect("/game/0")
 
     games = execute_query(models.Games, id)
-    return render_template('all_games.html', games=games)
+
+    if id == 0:
+        return render_template('all_games.html', games=games)
+    else:
+        return render_template('individual_games.html', games=games)
 
 
 @app.route('/category/', defaults={'id': None})
@@ -69,4 +77,8 @@ def category(id):
         return redirect("/category/0")
 
     categories = execute_query(models.Categories, id)
-    return render_template('categorys.html', categories=categories)
+
+    if id == 0:
+        return render_template('all_categories.html', categories=categories)
+    else:
+        return render_template('individual_categories.html', categories=categories)

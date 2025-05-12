@@ -1,5 +1,3 @@
-# flake8: noqa E501
-
 from app.routes import db
 
 # Many-to-many Relationship Table
@@ -10,14 +8,14 @@ from app.routes import db
 
 
 GameCategories = db.Table("GameCategories",
-    db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE")),  
-    db.Column("CategoryID", db.Integer, db.ForeignKey("Categories.CategoryID", ondelete="CASCADE"))  
-)
+                          db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE")),
+                          db.Column("CategoryID", db.Integer, db.ForeignKey("Categories.CategoryID", ondelete="CASCADE"))
+                          )
 
 GamePlatforms = db.Table("GamePlatforms",
-    db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE")),  
-    db.Column("PlatformID", db.Integer, db.ForeignKey("Platforms.PlatformID", ondelete="CASCADE"))  
-)
+                         db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE")),
+                         db.Column("PlatformID", db.Integer, db.ForeignKey("Platforms.PlatformID", ondelete="CASCADE"))
+                         )
 
 
 class Games(db.Model):
@@ -43,7 +41,7 @@ class Categories(db.Model):
 
     CategoryID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     CategoryName = db.Column(db.String(100), nullable=False)
-    CategoryDescription = db.Column(db.String(255))
+    CategoryDescription = db.Column(db.Text)
 
     games = db.relationship("Games", secondary="GameCategories", back_populates="categories")
 
@@ -68,9 +66,9 @@ class Platforms(db.Model):
 class SystemRequirements(db.Model):
     __tablename__ = "SystemRequirements"
 
-    RequirementsID = db.Column(db.Integer, primary_key=True, autoincrement=True)  
-    GameID = db.Column(db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE"), nullable=False)  
-    Type = db.Column(db.String(12), nullable=False)  # "Minimum" or "Recommended"  
+    RequirementsID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    GameID = db.Column(db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE"), nullable=False)
+    Type = db.Column(db.String(12), nullable=False)  # "Minimum" or "Recommended"
     OS = db.Column(db.String(100))
     RAM = db.Column(db.String(50))
     CPU = db.Column(db.String(100))
@@ -118,12 +116,12 @@ class Reviews(db.Model):
 
 # class Pizza(db.Model):
 #     __tablename__ = "Pizza"
-#     id = db.Column(db.Integer, primary_key = True)  
+#     id = db.Column(db.Integer, primary_key = True)
 #     name = db.Column(db.String())
 #     description = db.Column(db.Text())
 #     base = db.Column(db.Integer, db.ForeignKey("Base.BaseID"))
 
-#     base_name = db.relationship("Base", backref = "pizzas_with_this_base")  
+#     base_name = db.relationship("Base", backref = "pizzas_with_this_base")
 
 #     def __repr__(self):
 #         return f"{self.name.upper()} PIZZA"
