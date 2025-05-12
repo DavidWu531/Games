@@ -1,0 +1,5 @@
+[flake8]
+
+per-file-ignores = 
+    app/routes.py: E501
+    app/models.py: E501
