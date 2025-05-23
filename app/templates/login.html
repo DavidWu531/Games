@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{% if error %}
+    <p>{{ error }}</p>
+{% endif %}
+<form action="/login" method="POST">
+    <input id="username" name="username" type="text" placeholder="Enter username" class="textbox" required></br></br>
+    <input id="password" name="password" type="password" placeholder="Enter password" class="textbox" required></br></br>
+    <input type="submit" value="Sign In">
+</form>
+{% endblock %}

@@ -19,7 +19,7 @@ ul {
 }
 
 li {
-    float: left;
+    display: inline-block;
 }
 
 li a {
@@ -45,4 +45,31 @@ li a:hover {
     margin-right: 16px;
     border: none;
     font-size: 17px;
+}
+
+.grid_container {
+    display: grid;
+    gap: 70px;
+    grid-template-columns: auto auto auto;
+    padding: 10px;
+    justify-content: center;
+    align-items: start;
+}
+
+.grid_item {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    font-size: 30px;
+    text-align: center;
+    overflow-wrap: normal;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background-color: #111;
+    font-size: 28px;
+    color: white;
 }

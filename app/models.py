@@ -1,3 +1,6 @@
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField
+from wtforms.validators import DataRequired, Length
 from app.routes import db
 
 # Many-to-many Relationship Table
@@ -112,6 +115,28 @@ class Reviews(db.Model):
 
     def __repr__(self):
         return f"<Reviews {self.GameID} {self.ReviewID} for {self.GameID}"
+
+
+class Accounts(db.Model):
+    __tablename__ = "Accounts"
+
+    AccountID = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    AccountUsername = db.Column(db.Text, nullable=False, unique=True)
+    AccountPassword = db.Column(db.Text, nullable=False)
+
+    def __init__(self, AccountUsername, AccountPassword):
+        self.AccountUsername = AccountUsername
+        self.AccountPassword = AccountPassword
+
+
+class LoginForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired()])
+
+
+class RegisterForm(FlaskForm):
+    username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
 
 
 # class Pizza(db.Model):

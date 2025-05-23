@@ -3,12 +3,31 @@
 {% block content %}
     <h2>Games</h2>
     {% if games %}
-        <ul>
+        <div class="grid_container">
         {% for game in games %}
-            <li>{{ game.GameID }}: {{ game.GameName }} by {{ game.GameDeveloper }}</li>
-            <br>
+            <div class="grid_item">
+                <img src="{{ url_for('static', filename='images/icon.png') }}"><br>
+                <p>{{ game.GameName }}</p>
+            </div>
+            <div class="grid_item">
+                {% if game.system_requirements %}
+                <ul>
+                    {% for requirement in game.system_requirements %}
+                        <p>
+                            OS: {{ requirement.OS }}<br>
+                            RAM: {{ requirement.RAM }}<br>
+                            CPU: {{ requirement.CPU }}<br>
+                            GPU: {{ requirement.GPU }}<br>
+                            Storage: {{ requirement.Storage }}<br>
+                        </p>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                    <p>No data found</p>
+                {% endif %}
+            </div>
         {% endfor %}
-        </ul>
+        </div>
     {% else %}
         <p>No games found.</p>
     {% endif %}

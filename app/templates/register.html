@@ -1,0 +1,12 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+{% if error %}
+    <p>{{ error }}</p>
+{% endif %}
+<form action="/register" method="POST">
+    <input id="username" name="username" type="text" placeholder="Create a username" class="textbox" required></br></br>
+    <input id="password" name="password" type="password" placeholder="Create a password" class="textbox" required></br></br>
+    <input type="submit" value="Sign Up">
+</form>
+{% endblock %}
