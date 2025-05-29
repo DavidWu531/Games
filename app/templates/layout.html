@@ -6,13 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Games</title>
 </head>
-{% with messages = get_flashed_messages() %}
-    {% if messages %}
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
 <body>
     <header>
         <nav>
@@ -22,13 +15,24 @@
                 <li><a href="/game">Games</a></li>
                 <li><a href="/category">Categories</a></li>
                 <li><a href="/about">About</a></li>
-                <li class="align_right"><img src="{{ url_for('static', filename='images/icon.png') }}" width="51px" height="51px"></li>
+                <li class="align_right">
+                    <a href="/login">
+                        <img src="{{ url_for('static', filename='images/icon.png') }}" width="30", height="30">
+                    </a>
+                </li>
                 <li class="align_right"><input type="text" placeholder="Search Game..."></li>
             </ul>
         </nav>
     </header>
     <main>
         {% block content %}
+            {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
         {% endblock %}
     </main>
     <footer>

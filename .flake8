@@ -3,3 +3,4 @@
 per-file-ignores = 
     app/routes.py: E501
     app/models.py: E501
+    app/forms.py: E501

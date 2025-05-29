@@ -1,6 +1,3 @@
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField
-from wtforms.validators import DataRequired, Length
 from app.routes import db
 
 # Many-to-many Relationship Table
@@ -127,16 +124,6 @@ class Accounts(db.Model):
     def __init__(self, AccountUsername, AccountPassword):
         self.AccountUsername = AccountUsername
         self.AccountPassword = AccountPassword
-
-
-class LoginForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired()])
-    password = PasswordField('Password', validators=[DataRequired()])
-
-
-class RegisterForm(FlaskForm):
-    username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
-    password = PasswordField('Password', validators=[DataRequired(), Length(min=6)])
 
 
 # class Pizza(db.Model):
