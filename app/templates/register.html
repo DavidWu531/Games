@@ -9,6 +9,7 @@
             <p>{{ error }}</p>
         {% endfor %}
     {% endif %}
+    {{ form.hidden_tag() }}
     {{ form.username }}<br><br>
     {{ form.password }}<br><br>
     {{ form.submit }}

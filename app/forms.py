@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Length
 
 
@@ -30,4 +30,18 @@ class RegisterForm(FlaskForm):
     submit = SubmitField("Register")
 
     def validate_username(self, field):
-        pass
+        username = field.data
+
+        # Checks if username contains other characters besides letters and numbers
+        if not username.isalnum() and username.isascii():
+            raise ValidationError("Username can only contain alphanumeric characters")
+
+        # Checks if password contains spaces since they're not recommended
+        if username.strip() != username:
+            raise ValidationError("Username cannot leading or trailing spaces")
+
+    def validate_password(self, field):
+        password = field.data
+
+        if password.strip() != password:
+            raise ValidationError("Password cannot leading or trailing spaces")

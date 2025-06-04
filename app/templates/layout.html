@@ -20,7 +20,11 @@
                         <img src="{{ url_for('static', filename='images/icon.png') }}" width="30", height="30">
                     </a>
                 </li>
-                <li class="align_right"><input type="text" placeholder="Search Game..."></li>
+                <li class="align_right">
+                    <form action="/search" method="POST">
+                        <input type="text" placeholder="Search Game...">
+                    </form>
+                </li>
             </ul>
         </nav>
     </header>

@@ -1,4 +1,3 @@
-import sqlite3
 from app import app
 from flask import render_template, abort, redirect, session
 from flask_sqlalchemy import SQLAlchemy
@@ -36,11 +35,13 @@ def execute_query(model, id: int = 0):
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = models.Accounts.query.filter_by(AccountUsername=form.username.data).first_or_404()
-        if user and bcrypt.check_password_hash(user.password_hash, form.password.data):
+        user = models.Accounts.query.filter_by(AccountUsername=form.username.data).first()
+        if user and bcrypt.check_password_hash(user.AccountPassword, form.password.data):
+            print(session)
             session['AccountID'] = user.AccountID
-            return redirect("/")
+            return redirect("/dashboard")
         else:
+            form.username.errors.append("Invalid username or password")
             return redirect("/login")
 
     return render_template('login.html', form=form)
@@ -53,23 +54,19 @@ def register():
         temp_username = form.username.data
         temp_password = form.password.data
 
-        # Checks if username contains other characters besides letters and numbers
-        if not (temp_username.isalnum() and temp_username.isascii()):
-            return redirect('/register')
-
-        # Checks if password contains spaces since they're not recommended
-        if (temp_password.strip() != temp_password) or (temp_username.strip() != temp_username):
-            return redirect('/register')
-
         # Hash password
-        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        hashed_password = bcrypt.generate_password_hash(temp_password).decode('utf-8')
         try:
             new_account = models.Accounts(AccountUsername=temp_username, AccountPassword=hashed_password)
             db.session.add(new_account)
             db.session.commit()
-        except sqlite3.IntegrityError:
+        except Exception as e:
             db.session.rollback()
-            return redirect('/register')
+            if 'UNIQUE constraint failed' in str(e):
+                form.username.errors.append("Account already exists")
+            else:
+                form.username.errors.append("An error occurred, please try again later")
+            return render_template("register.html", form=form)
         else:
             print(f"User {temp_username} registered")
             return redirect('/login')
@@ -77,6 +74,21 @@ def register():
         print(form.errors)
 
     return render_template('register.html', form=form)
+
+
+@app.route('/logout')
+def logout():
+    if "AccountID" in session:
+        session.pop('AccountID', None)
+    return redirect('/')
+
+
+@app.route('/dashboard')
+def dashboard():
+    if "AccountID" in session:
+        return render_template('dashboard.html')
+    else:
+        return redirect('/login')
 
 
 # Home Page Route
@@ -146,3 +158,8 @@ def category(id):
         return render_template('all_categories.html', categories=categories)
     else:
         return render_template('individual_categories.html', categories=categories)
+
+
+@app.route('/search', methods=["GET", "POST"])
+def search():
+    pass
