@@ -94,3 +94,8 @@ input {
     box-sizing: border-box;
     width: 100%;
   }
+
+.game_rating {
+    width: fit-content;
+    position: relative;
+}

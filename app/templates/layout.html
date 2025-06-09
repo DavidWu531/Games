@@ -16,13 +16,13 @@
                 <li><a href="/category">Categories</a></li>
                 <li><a href="/about">About</a></li>
                 <li class="align_right">
-                    <a href="/login">
-                        <img src="{{ url_for('static', filename='images/icon.png') }}" width="30", height="30">
+                    <a href="/dashboard">
+                        <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
                     </a>
                 </li>
                 <li class="align_right">
-                    <form action="/search" method="POST">
-                        <input type="text" placeholder="Search Game...">
+                    <form action="/search" method="GET">
+                        <input type="text" name="query" placeholder="Search Game...">
                     </form>
                 </li>
             </ul>

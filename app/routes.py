@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template, abort, redirect, session
+from flask import render_template, abort, redirect, session, request
 from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_bcrypt import Bcrypt
@@ -17,18 +17,48 @@ from app.forms import LoginForm, RegisterForm  # noqa: E402
 
 
 # Helper function for querying data
-def execute_query(model, id: int = 0):
+def execute_query(model, operation='SELECT', id=None, data=None):
     try:
-        if not id:  # id returns false or equals 0, get all
-            return model.query.all()
-        # else get data based on id
-        record = model.query.get_or_404(id)
-        # return in list due to original being instances
-        # allows data to be displayed in templates using for loop
-        return [record]
+        if operation == "SELECT":
+            if not id:  # id returns false or equals 0, get all
+                return model.query.all()
+            # else get data based on id
+            record = model.query.get_or_404(id)
+            # return in list due to original being instances
+            # allows data to be displayed in templates using for loop
+            return [record]
+        elif operation == "INSERT":
+            if not data:
+                abort(400, "Cannot insert data")
+            record = model(**data)
+            db.session.add(record)
+            db.session.commit()
+            return [record]
+        elif operation == "UPDATE":
+            if not data or not id:
+                abort(400, "Not all fields were filled in")
+            record = model.query.get_or_404(id)
+            for key, value in data.items():
+                setattr(record, key, value)
+            db.session.commit()
+            return [record]
+        elif operation == "DELETE":
+            if id is None:
+                abort(400, "ID not provided")
+            record = model.query.get_or_404(id)
+            db.session.delete(record)
+            db.session.commit()
+            return []
+        else:
+            abort(404, "Invalid operation")
+
     except OverflowError:
         # prevents extremely large numbers from id
         abort(404)
+    except Exception as e:
+        if session:
+            session.rollback()
+        abort(404, f"Database error: {str(e)}")
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -118,7 +148,7 @@ def platform(id):
         return redirect("/platform/0")
 
     # query data via helper function
-    platforms = execute_query(models.Platforms, id)
+    platforms = execute_query(models.Platforms, "SELECT", id)
 
     if id == 0:  # template all if id is 0 else individual
         return render_template('all_platforms.html', platforms=platforms)
@@ -135,7 +165,7 @@ def game(id):
         return redirect("/game/0")
 
     # query data via helper function
-    games = execute_query(models.Games, id)
+    games = execute_query(models.Games, "SELECT", id)
 
     if id == 0:  # template all if id is 0 else individual
         return render_template('all_games.html', games=games)
@@ -152,7 +182,7 @@ def category(id):
         return redirect("/category/0")
 
     # query data via helper function
-    categories = execute_query(models.Categories, id)
+    categories = execute_query(models.Categories, "SELECT", id)
 
     if id == 0:  # template all if id is 0 else individual
         return render_template('all_categories.html', categories=categories)
@@ -162,4 +192,10 @@ def category(id):
 
 @app.route('/search', methods=["GET", "POST"])
 def search():
-    pass
+    games = None
+    query = request.args.get('query', '')
+    if query:
+        games = models.Games.query.filter(models.Games.GameName.ilike(f'%{query}')).all()
+    else:
+        games = execute_query(models.Games, 0)
+    return render_template('all_games.html', games=games)
