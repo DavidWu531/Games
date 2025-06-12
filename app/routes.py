@@ -17,58 +17,80 @@ from app.forms import LoginForm, RegisterForm  # noqa: E402
 
 
 # Helper function for querying data
-def execute_query(model, operation='SELECT', id=None, data=None):
+def execute_query(model, operation='SELECT', id=None, data=None, filters=None, search_fields=None):
     try:
+        # SELECT OPERATION
         if operation == "SELECT":
-            if not id:  # id returns false or equals 0, get all
+            # Case 1: Fetch single records by ID
+            if id is not None and id != 0:
+                record = model.query.get_or_404(id)  # Auto-404 if none found
+                return [record]  # Return as list for display in HTML
+            # Case 2: Exact filtering, case-insensitive
+            elif filters:  # Get queried results based on inputted query
+                query = model.query
+                for column_name, value in filters.items():
+                    column = getattr(model, column_name)
+                    for column_name, value in filters.items():
+                        column = getattr(model, column_name)
+                        query = query.filter(column.ilike(f"{value}"))  # Exact, Case-insensitive match
+
+                return query.all()
+            # Case 3: Partial search
+            elif search_fields:
+                query = model.query
+                for column_name, value in search_fields.items():
+                    column = getattr(model, column_name)
+                    query = query.filter(column.ilike(f"%{value}%"))
+                return query.all()
+            # Case 4: Get all
+            else:
                 return model.query.all()
-            # else get data based on id
-            record = model.query.get_or_404(id)
-            # return in list due to original being instances
-            # allows data to be displayed in templates using for loop
-            return [record]
+        # INSERT OPERATION
         elif operation == "INSERT":
             if not data:
                 abort(400, "Cannot insert data")
-            record = model(**data)
+            record = model(**data)  # Create new record
             db.session.add(record)
             db.session.commit()
-            return [record]
+            return [record]  # Return new record
+        # UPDATE OPERATION
         elif operation == "UPDATE":
             if not data or not id:
                 abort(400, "Not all fields were filled in")
-            record = model.query.get_or_404(id)
+            record = model.query.get_or_404(id)  # Get existing record
             for key, value in data.items():
-                setattr(record, key, value)
+                setattr(record, key, value)  # Update each field
             db.session.commit()
-            return [record]
+            return [record]  # Return updated record
+        # DELETE OPERATION
         elif operation == "DELETE":
             if id is None:
                 abort(400, "ID not provided")
             record = model.query.get_or_404(id)
             db.session.delete(record)
             db.session.commit()
-            return []
+            return []  # Returns empty list, indicates data deleted
         else:
-            abort(404, "Invalid operation")
+            abort(400, "Invalid operation")
 
+    # ERROR HANDLING
     except OverflowError:
-        # prevents extremely large numbers from id
+        # Invalid ID (Integer too large)
         abort(404)
     except Exception as e:
-        if session:
-            session.rollback()
-        abort(404, f"Database error: {str(e)}")
+        # Revert on errors, abort Internal Server Error
+        db.session.rollback()
+        abort(500, f"Database error: {str(e)}")
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = models.Accounts.query.filter_by(AccountUsername=form.username.data).first()
+        users = execute_query(models.Accounts, operation="SELECT", filters={"AccountUsername": form.username.data})
+        user = users[0] if users else None  # Grabs first result, usernames are unique
         if user and bcrypt.check_password_hash(user.AccountPassword, form.password.data):
-            print(session)
-            session['AccountID'] = user.AccountID
+            session['AccountID'] = user.AccountID  # Logs user in
             return redirect("/dashboard")
         else:
             form.username.errors.append("Invalid username or password")
@@ -86,8 +108,13 @@ def register():
 
         # Hash password
         hashed_password = bcrypt.generate_password_hash(temp_password).decode('utf-8')
+        data = {
+            "AccountUsername": temp_username,
+            "AccountPassword": hashed_password
+        }
+
         try:
-            new_account = models.Accounts(AccountUsername=temp_username, AccountPassword=hashed_password)
+            new_account = execute_query(models.Accounts, operation="INSERT", data=data)
             db.session.add(new_account)
             db.session.commit()
         except Exception as e:
@@ -148,7 +175,7 @@ def platform(id):
         return redirect("/platform/0")
 
     # query data via helper function
-    platforms = execute_query(models.Platforms, "SELECT", id)
+    platforms = execute_query(models.Platforms, operation="SELECT", id=id)
 
     if id == 0:  # template all if id is 0 else individual
         return render_template('all_platforms.html', platforms=platforms)
@@ -165,7 +192,7 @@ def game(id):
         return redirect("/game/0")
 
     # query data via helper function
-    games = execute_query(models.Games, "SELECT", id)
+    games = execute_query(models.Games, "SELECT", id=id)
 
     if id == 0:  # template all if id is 0 else individual
         return render_template('all_games.html', games=games)
@@ -182,7 +209,7 @@ def category(id):
         return redirect("/category/0")
 
     # query data via helper function
-    categories = execute_query(models.Categories, "SELECT", id)
+    categories = execute_query(models.Categories, "SELECT", id=id)
 
     if id == 0:  # template all if id is 0 else individual
         return render_template('all_categories.html', categories=categories)
@@ -193,9 +220,13 @@ def category(id):
 @app.route('/search', methods=["GET", "POST"])
 def search():
     games = None
-    query = request.args.get('query', '')
+    query = request.args.get('query', '').strip()
     if query:
-        games = models.Games.query.filter(models.Games.GameName.ilike(f'%{query}')).all()
+        exact_matches = execute_query(models.Games, filters={"GameName": query})
+        if exact_matches:
+            return redirect("game/" + str(exact_matches[0].GameID))
+
+        games = execute_query(models.Games, search_fields={"GameName": query})
     else:
-        games = execute_query(models.Games, 0)
+        games = execute_query(models.Games)
     return render_template('all_games.html', games=games)
