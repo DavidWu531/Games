@@ -26,7 +26,7 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
                 record = model.query.get_or_404(id)  # Auto-404 if none found
                 return [record]  # Return as list for display in HTML
             # Case 2: Exact filtering, case-insensitive
-            elif filters:  # Get queried results based on inputted query
+            elif filters:  # Get queried results based on input
                 query = model.query
                 for column_name, value in filters.items():
                     column = getattr(model, column_name)
@@ -36,11 +36,11 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
 
                 return query.all()
             # Case 3: Partial search
-            elif search_fields:
+            elif search_fields:  # Get all results with input in query
                 query = model.query
                 for column_name, value in search_fields.items():
                     column = getattr(model, column_name)
-                    query = query.filter(column.ilike(f"%{value}%"))
+                    query = query.filter(column.ilike(f"%{value}%"))  # Partial case-insensitive match
                 return query.all()
             # Case 4: Get all
             else:
@@ -81,6 +81,21 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
         # Revert on errors, abort Internal Server Error
         db.session.rollback()
         abort(500, f"Database error: {str(e)}")
+
+
+@app.errorhandler(404)
+def not_found_error(e):
+    return render_template("error.html", code=404, title="Page Not Found", message="The page doesn't exist"), 404
+
+
+@app.errorhandler(400)
+def bad_request_error(e):
+    return render_template("error.html", code=400, title="Bad Request", message="Something went wrong with your request"), 400
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template("error.html", code=500, title="Internal Server Error", message="Something went wrong on our end"), 500
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -154,12 +169,6 @@ def home_page():
     return render_template('home.html')
 
 
-# Show 404 error page if route not found
-@app.errorhandler(404)
-def not_found(e):
-    return render_template('404.html'), 404
-
-
 # About Page Route
 @app.route('/about')
 def about():
@@ -230,3 +239,8 @@ def search():
     else:
         games = execute_query(models.Games)
     return render_template('all_games.html', games=games)
+
+
+@app.route('/rate_game/<int:id>', methods=["POST"])
+def rate_game(id):
+    value = int(request.form.get("rating", 0))
