@@ -10,12 +10,12 @@
                 <p>{{ game.GameName }}</p>
                 {% if session %}
                     <div class="game_rating">
-                        <form method="POST" action="/rate_game">
+                        <form method="POST" action="/rate_game/{{ game.GameID }}">
                             {% for star in range(1, 6) %}
                                 <input type="radio" name="rating" value="{{ star }}" 
-                                id="{{ star }}"
-                                {% if user_rating == star %}checked{% endif %}
-                                onchange="this.form.submit();">
+                                    id="star{{ star }}"
+                                    {% if user_rating == star %}checked{% endif %}
+                                    onchange="this.form.submit();">
                                 <label for="star{{ star }}">&#9733;</label>
                             {% endfor %}
                         </form>

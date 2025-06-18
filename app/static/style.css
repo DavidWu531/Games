@@ -1,5 +1,6 @@
 * {
     margin: 0;
+    text-decoration: none;
 }
 
 html, body {
@@ -106,4 +107,11 @@ input {
 .game_rating {
     width: fit-content;
     position: relative;
+}
+
+.logout_button{
+    background-color: red;
+    color: white;
+    padding: 14px 25px;
+    display: inline-block;
 }

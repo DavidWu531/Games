@@ -93,6 +93,11 @@ def bad_request_error(e):
     return render_template("error.html", code=400, title="Bad Request", message="Something went wrong with your request"), 400
 
 
+@app.errorhandler(401)
+def unauthourised_error(e):
+    return render_template("error.html", code=401, title="Unauthorised Action", message="Request Denied: You are not logged in"), 400
+
+
 @app.errorhandler(500)
 def internal_server_error(e):
     return render_template("error.html", code=500, title="Internal Server Error", message="Something went wrong on our end"), 500
@@ -129,9 +134,8 @@ def register():
         }
 
         try:
-            new_account = execute_query(models.Accounts, operation="INSERT", data=data)
-            db.session.add(new_account)
-            db.session.commit()
+            execute_query(models.Accounts, operation="INSERT", data=data)
+            return redirect('/login')
         except Exception as e:
             db.session.rollback()
             if 'UNIQUE constraint failed' in str(e):
@@ -139,9 +143,6 @@ def register():
             else:
                 form.username.errors.append("An error occurred, please try again later")
             return render_template("register.html", form=form)
-        else:
-            print(f"User {temp_username} registered")
-            return redirect('/login')
     else:
         print(form.errors)
 
@@ -151,7 +152,22 @@ def register():
 @app.route('/logout')
 def logout():
     if "AccountID" in session:
-        session.pop('AccountID', None)
+        session.pop("AccountID", None)
+    return redirect('/')
+
+
+@app.route('/delete')
+def delete():
+    user_id = session.get("AccountID")
+    if user_id is None:
+        return redirect('/')
+
+    try:
+        execute_query(models.Accounts, operation="DELETE", filters={"AccountID": user_id})
+    except Exception as e:  # noqa F841
+        print("An error occurred, please try again later")
+    else:
+        session.pop("AccountID", None)
     return redirect('/')
 
 
@@ -206,7 +222,14 @@ def game(id):
     if id == 0:  # template all if id is 0 else individual
         return render_template('all_games.html', games=games)
     else:
-        return render_template('individual_games.html', games=games)
+        user_rating = None
+        user_id = session.get("AccountID")
+        if user_id:
+            user_rating = execute_query(models.Reviews, filters={"UserID": user_id, "GameID": id})
+            if user_rating:
+                user_rating = user_rating[0].Rating
+
+        return render_template('individual_games.html', games=games, user_rating=user_rating)
 
 
 # Displays platforms, allows id=0 for redirecting
@@ -245,7 +268,7 @@ def search():
 def rate_game(id):
     user_id = session.get("AccountID")
     if not user_id:
-        abort(401, "You must be logged in to rate.")
+        abort(401)
 
     value = int(request.form.get("rating", 0))
 
@@ -259,4 +282,4 @@ def rate_game(id):
     else:
         execute_query(models.Reviews, operation="INSERT", data={"UserID": user_id, "GameID": id, "Rating": value})
 
-    return redirect("/Game/" + str(id))
+    return redirect("/game/" + str(id))
