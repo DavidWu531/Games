@@ -243,4 +243,20 @@ def search():
 
 @app.route('/rate_game/<int:id>', methods=["POST"])
 def rate_game(id):
+    user_id = session.get("AccountID")
+    if not user_id:
+        abort(401, "You must be logged in to rate.")
+
     value = int(request.form.get("rating", 0))
+
+    existing = execute_query(models.Reviews, filters={"UserID": user_id, "GameID": id})
+
+    if value == 0:
+        if existing:
+            execute_query(models.Reviews, operation="DELETE", id=existing[0].ReviewID)
+    elif existing:
+        execute_query(models.Reviews, operation="UPDATE", id=existing[0].ReviewID, data={"Rating": value})
+    else:
+        execute_query(models.Reviews, operation="INSERT", data={"UserID": user_id, "GameID": id, "Rating": value})
+
+    return redirect("/Game/" + str(id))
