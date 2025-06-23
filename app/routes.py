@@ -83,6 +83,7 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
         abort(500, f"Database error: {str(e)}")
 
 
+# All errors use the same render template, but their code, title, and message are different when rendered
 @app.errorhandler(404)
 def not_found_error(e):
     return render_template("error.html", code=404, title="Page Not Found", message="The page doesn't exist"), 404
@@ -199,13 +200,14 @@ def platform(id):
     if id is None:
         return redirect("/platform/0")
 
-    # query data via helper function
-    platforms = execute_query(models.Platforms, operation="SELECT", id=id)
-
     if id == 0:  # template all if id is 0 else individual
+        # query data via helper function
+        platforms = execute_query(models.Platforms, operation="SELECT", id=0)
         return render_template('all_platforms.html', platforms=platforms)
     else:
-        return render_template('individual_platforms.html', platforms=platforms)
+        platform = execute_query(models.Platforms, operation="SELECT", id=id)
+        games = platform[0].games
+        return render_template('individual_platforms.html', platform=platform[0], games=games)
 
 
 # Displays platforms, allows id=0 for redirecting
@@ -252,14 +254,14 @@ def category(id):
 @app.route('/search', methods=["GET", "POST"])
 def search():
     games = None
-    query = request.args.get('query', '').strip()
+    query = request.args.get('query', '').strip()  # Obtain input
     if query:
         exact_matches = execute_query(models.Games, filters={"GameName": query})
-        if exact_matches:
+        if exact_matches:  # Should return 1 output
             return redirect("game/" + str(exact_matches[0].GameID))
 
         games = execute_query(models.Games, search_fields={"GameName": query})
-    else:
+    else:  # Grab all if no input
         games = execute_query(models.Games)
     return render_template('all_games.html', games=games)
 
@@ -267,19 +269,21 @@ def search():
 @app.route('/rate_game/<int:id>', methods=["POST"])
 def rate_game(id):
     user_id = session.get("AccountID")
-    if not user_id:
+    if not user_id:  # Ensures only logged-in users can rate
         abort(401)
 
-    value = int(request.form.get("rating", 0))
+    value = int(request.form.get("rating", 0))  # Grab rating
 
+    # Changes rating if rating already exists
     existing = execute_query(models.Reviews, filters={"UserID": user_id, "GameID": id})
 
     if value == 0:
-        if existing:
+        if existing:  # Deletes review if rating = 0
             execute_query(models.Reviews, operation="DELETE", id=existing[0].ReviewID)
-    elif existing:
+    elif existing:  # Updates if rating exists
         execute_query(models.Reviews, operation="UPDATE", id=existing[0].ReviewID, data={"Rating": value})
-    else:
+    else:  # Creates new rating for user and game
         execute_query(models.Reviews, operation="INSERT", data={"UserID": user_id, "GameID": id, "Rating": value})
 
+    # Redirects to current game page
     return redirect("/game/" + str(id))

@@ -109,9 +109,32 @@ input {
     position: relative;
 }
 
-.logout_button{
+.logout_button {
     background-color: red;
     color: white;
     padding: 14px 25px;
     display: inline-block;
+}
+
+.delete_button {
+    background-color: red;
+    color: white;
+    padding: 14px 25px;
+    display: inline-block;
+}
+
+.stars_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.star_wrapper {
+    display: inline-block;
+}
+
+.clear_wrapper {
+    margin-left: 15px
 }
