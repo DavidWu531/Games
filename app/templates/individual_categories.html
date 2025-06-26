@@ -2,12 +2,24 @@
 
 {% block content %}
     <h2>Categories</h2>
-    {% if categories %}
-        <ul>
-        {% for category in categories %}
-            <li>{{ category.CategoryID }}: {{ category.CategoryName }}</li>
+    {% if category %}
+        <h3>{{ category.CategoryName }}</h3>
+        <p>{{ category.CategoryDescription }}</p>
+        {% if category.games %}
+            <div class="grid_container">
+                {% for game in category.games %}
+                <a href="/game/{{ game.GameID }}" class="grid_link">
+                    <div class="grid_item">
+                        {{ game.GameName }}<br>
+                        <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No games listed</p>
+        {% endif %}
             <br>
-        {% endfor %}
         </ul>
     {% else %}
         <p>No categories found.</p>

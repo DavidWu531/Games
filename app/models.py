@@ -137,3 +137,58 @@ class Accounts(db.Model):
 
 #     def __repr__(self):
 #         return f"{self.name.upper()} PIZZA"
+
+
+# def sql_function():
+#     categories = {
+#     "Minecraft": [6, 7, 8, 13, 4, 11],
+#     "Roblox": [6, 10, 11, 7],
+#     "Fortnite": [12, 3, 11, 10, 8],
+#     "Genshin Impact": [14, 8, 19, 15, 11],
+#     "Devil May Cry 5": [1, 18, 17],
+#     "Zenless Zone Zero": [1, 14, 19, 24],
+#     "Assassin's Creed Shadows": [1, 8, 20, 14, 17],
+#     "Grand Theft Auto V": [8, 1, 21, 22, 11],
+#     "Diablo III": [14, 18, 23, 4],
+#     "Punishing: Gray Raven": [1, 18, 19, 24],
+#     "Cyberpunk 2077": [14, 8, 24, 17],
+#     "Valorant": [2, 3, 11],
+#     "Baldur's Gate 3": [14, 15, 17, 4],
+#     "Counter-Strike 2": [2, 3, 11],
+#     "League of Legends": [11, 16, 15],
+#     "Elden Ring": [14, 8, 15, 1],
+#     "Dota 2": [11, 16, 15],
+#     "Starfield": [14, 8, 24],
+#     "Apex Legends": [2, 12, 11, 24],
+#     "God of War Ragnarök": [1, 17, 15, 18],
+#     "Spider-Man 2": [1, 8, 17],
+#     "The Last of Us Part II": [1, 17, 13],
+#     "Horizon Forbidden West": [1, 8, 14, 24],
+#     "Final Fantasy XVI": [14, 15, 17, 1],
+#     "Demon's Souls [Remake]": [14, 1, 15],
+#     "Gran Turismo 7": [22, 9],
+#     "Returnal": [1, 24],
+#     "Ratchet & Clank: Rift Apart": [1, 5, 24],
+#     "Ghost of Tsushima": [1, 8, 20, 17],
+#     "Halo Infinite": [2, 3, 11, 24],
+#     "Forza Horizon 5": [22, 8, 9],
+#     "Wuthering Waves": [1, 14, 8, 19],
+#     "Gears 5": [3, 1, 24, 4],
+#     "Microsoft Flight Simulator": [9],
+#     "Sea of Thieves": [5, 11, 8, 4],
+#     "Hellblade II: Senua's Saga": [1, 17, 15],
+#     "Fable [Upcoming]": [14, 15, 8],
+#     "State of Decay 3": [13, 8, 1],
+#     "Avowed [Upcoming]": [14, 15, 8],
+#     "Xenoblade Chronicles 3": [14, 15, 19, 17]
+#     }
+
+#     sorted_categories = {
+#         game: sorted(tags) for game, tags in categories.items()
+#     }
+
+#     for i, (game, tags) in enumerate(sorted_categories.items(), start=1):
+#         print(i)
+#         for tag in tags:
+#             print(tag)
+#         print("-----")

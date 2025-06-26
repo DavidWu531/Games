@@ -138,3 +138,7 @@ input {
 .clear_wrapper {
     margin-left: 15px
 }
+
+.grid_link {
+    color: inherit;
+}

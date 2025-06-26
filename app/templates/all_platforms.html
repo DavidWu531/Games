@@ -4,10 +4,16 @@
     <h2>Platforms</h2>
     {% if platforms %}
         <ul>
+        <div class="grid_container">
         {% for platform in platforms %}
-            <li>{{ platform.PlatformID }}: {{ platform.PlatformName }}</li>
-            <br>
+            <a href="/platform/{{ platform.PlatformID }}" class="grid_link">
+                <div class="grid_item">
+                    {{ platform.PlatformName }}<br>
+                    <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
+                </div>
+            </a>
         {% endfor %}
+        </div>
         </ul>
     {% else %}
         <p>No platforms found.</p>
