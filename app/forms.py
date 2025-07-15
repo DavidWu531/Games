@@ -37,11 +37,11 @@ class RegisterForm(FlaskForm):
             raise ValidationError("Username can only contain alphanumeric characters")
 
         # Checks if password contains spaces since they're not recommended
-        if username.strip() != username:
-            raise ValidationError("Username cannot leading or trailing spaces")
+        if " " in username:
+            raise ValidationError("Username cannot contain spaces")
 
     def validate_password(self, field):
         password = field.data
 
-        if password.strip() != password:
-            raise ValidationError("Password cannot leading or trailing spaces")
+        if " " in password:
+            raise ValidationError("Password cannot contain spaces")
