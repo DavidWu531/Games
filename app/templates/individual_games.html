@@ -34,17 +34,54 @@
                 {% endif %}
             </div>
             <div class="grid_item">
-                {% if game.system_requirements %}
+                <div class="dropdown">
+                    <form method="POST">
+                        {% if chosen_platform %}
+                            <label for="platforms">Platform: {{ chosen_platform }}</label>
+                        {% endif %}<br>
+                        <select id="platforms" name="platforms" onchange="this.form.submit()">
+                            <option value="PC" {% if chosen_platform == "PC" %}selected{% endif %}>PC</option>
+                            <option value="PlayStation" {% if chosen_platform == "PlayStation" %}selected{% endif %}>PlayStation</option>
+                            <option value="Xbox" {% if chosen_platform == "Xbox" %}selected{% endif %}>Xbox</option>
+                        </select>
+                    </form>
+                </div>
+                {% if platform_detail %}
                 <ul>
-                    {% for requirement in game.system_requirements %}
+                    {% for data in platform_detail %}
                         <p>
-                            Type: {{requirement.Type }}<br>
-                            OS: {{ requirement.OS }}<br>
-                            RAM: {{ requirement.RAM }}<br>
-                            CPU: {{ requirement.CPU }}<br>
-                            GPU: {{ requirement.GPU }}<br>
-                            Storage: {{ requirement.Storage }}<br>
+                            {% if chosen_platform %}
+                                Price: ${{ "%.2f"|format(data.Price) }}<br>
+                                Release Date: {{ data.ReleaseDate }}<br>
+                            {% endif %}
                         </p>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                    <p>No data available yet</p>
+                {% endif %}
+            </div>
+            <div class="grid_item">
+                {% if system_detail %}
+                <ul>
+                    {% for data in system_detail %}
+                        <p>
+                            {% if chosen_platform %}
+                                <table>
+                                    <tr>
+                                        <th>System Requirement</th>
+                                        <th>{% if data.Type != "N/A" %}{{ data.Type }}<br>{% endif %}</th>
+                                    </tr>
+                                    <tr>
+                                        <td>{% if data.OS != "N/A" %}OS: {{ data.OS }}<br>{% endif %}</td>
+                                        <td>{% if data.RAM != "N/A" %}RAM: {{ data.RAM }}<br>{% endif %}</td>
+                                        <td>{% if data.CPU != "N/A" %}CPU: {{ data.CPU }}<br>{% endif %}</td>
+                                        <td>{% if data.GPU != "N/A" %}GPU: {{ data.GPU }}<br>{% endif %}</td>
+                                        <td>{% if data.Storage != "N/A" %}Storage: {{ data.Storage }}<br>{% endif %}</td>
+                                    </tr>
+                                </table>
+                            {% endif %}
+                        </p><br>
                     {% endfor %}
                 </ul>
                 {% else %}

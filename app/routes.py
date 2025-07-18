@@ -33,7 +33,12 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
                 query = model.query
                 for column_name, value in filters.items():
                     column = getattr(model, column_name)
-                    query = query.filter(column.ilike(f"{value}"))
+                    if isinstance(value, list):
+                        query = query.filter(column.in_(value))
+                    elif isinstance(value, str):
+                        query = query.filter(column.ilike(f"{value}"))
+                    else:
+                        query = query.filter(column == value)
                 return query.all() or []
 
             # Case 3: Partial search
@@ -271,8 +276,8 @@ def platform(id):
 
 
 # Displays platforms, allows id=0 for redirecting
-@app.route('/game/', defaults={'id': None})
-@app.route('/game/<int:id>')
+@app.route('/game/', defaults={'id': None}, methods=['GET', 'POST'])
+@app.route('/game/<int:id>', methods=['GET', 'POST'])
 def game(id):
     games = None
     if id is None:
@@ -291,7 +296,12 @@ def game(id):
             if user_rating:  # Get rating based on current game and current user
                 user_rating = user_rating[0].Rating
 
-        return render_template('individual_games.html', games=games, user_rating=user_rating)
+        chosen_platform = request.form.get("platforms", "PC")
+        platform_id = {"PC": 1, "PlayStation": 2, "Xbox": 3}
+        platform_key = {"PC": ["Minimum", "Recommended"], "PlayStation": ["Normal"], "Xbox": ["Normal"]}
+        platform_detail = execute_query(models.GamePlatformDetails, operation="SELECT", filters={"GameID": id, "PlatformID": int(platform_id[chosen_platform])})
+        system_detail = execute_query(models.SystemRequirements, operation="SELECT", filters={"GameID": id, "Type": platform_key[chosen_platform], "PlatformID": platform_id[chosen_platform]})
+        return render_template('individual_games.html', games=games, user_rating=user_rating, chosen_platform=chosen_platform, platform_detail=platform_detail, system_detail=system_detail)
 
 
 # Displays platforms, allows id=0 for redirecting

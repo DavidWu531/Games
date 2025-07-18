@@ -58,6 +58,7 @@ class Platforms(db.Model):
 
     games = db.relationship("Games", secondary="GamePlatforms", back_populates="platforms")
     game_platform_details = db.relationship("GamePlatformDetails", back_populates="platforms", cascade="all, delete-orphan")
+    system_requirements = db.relationship("SystemRequirements", back_populates="platforms", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Platform {self.PlatformName}>"
@@ -68,6 +69,7 @@ class SystemRequirements(db.Model):
 
     RequirementsID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     GameID = db.Column(db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE"), nullable=False)
+    PlatformID = db.Column(db.Integer, db.ForeignKey("Platforms.PlatformID", ondelete="CASCADE"), nullable=False)
     Type = db.Column(db.String(12), nullable=False)  # "Minimum" or "Recommended"
     OS = db.Column(db.String(100))
     RAM = db.Column(db.String(50))
@@ -76,6 +78,7 @@ class SystemRequirements(db.Model):
     Storage = db.Column(db.String(50))
 
     games = db.relationship("Games", back_populates="system_requirements")
+    platforms = db.relationship("Platforms", back_populates="system_requirements")
 
     def __repr__(self):
         return f"<SystemRequirement {self.Type} for Game {self.GameID}>"
