@@ -63,27 +63,64 @@
             </div>
             <div class="grid_item">
                 {% if system_detail %}
-                <ul>
-                    {% for data in system_detail %}
-                        <p>
-                            {% if chosen_platform %}
-                                <table>
-                                    <tr>
-                                        <th>System Requirement</th>
-                                        <th>{% if data.Type != "N/A" %}{{ data.Type }}<br>{% endif %}</th>
-                                    </tr>
-                                    <tr>
-                                        <td>{% if data.OS != "N/A" %}OS: {{ data.OS }}<br>{% endif %}</td>
-                                        <td>{% if data.RAM != "N/A" %}RAM: {{ data.RAM }}<br>{% endif %}</td>
-                                        <td>{% if data.CPU != "N/A" %}CPU: {{ data.CPU }}<br>{% endif %}</td>
-                                        <td>{% if data.GPU != "N/A" %}GPU: {{ data.GPU }}<br>{% endif %}</td>
-                                        <td>{% if data.Storage != "N/A" %}Storage: {{ data.Storage }}<br>{% endif %}</td>
-                                    </tr>
-                                </table>
+                    {% if chosen_platform %}
+                        <table>
+                            <tr>
+                                <th>System Requirement</th>
+                                {% if chosen_platform == "PC" %}
+                                    <th>Minimum</th>
+                                    <th>Recommended</th>
+                                {% else %}
+                                    <th>Normal</th>
+                                {% endif %}
+                            </tr>
+                            {% if system_detail[0].OS != "N/A" %}
+                            <tr>
+                                <td>OS</td>
+                                {% for data in system_detail %}
+                                    <td>{{ data.OS }}</td>
+                                {% endfor %}
+                            </tr>
                             {% endif %}
-                        </p><br>
-                    {% endfor %}
-                </ul>
+                            
+                            {% if system_detail[0].RAM != "N/A" %}
+                            <tr>
+                                <td>RAM</td>
+                                {% for data in system_detail %}
+                                    <td>{{ data.RAM }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endif %}
+                            
+                            {% if system_detail[0].CPU != "N/A" %}
+                            <tr>
+                                <td>CPU</td>
+                                {% for data in system_detail %}
+                                    <td>{{ data.CPU }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endif %}
+                            
+                            {% if system_detail[0].GPU != "N/A" %}
+                            <tr>
+                                <td>GPU</td>
+                                {% for data in system_detail %}
+                                    <td>{{ data.GPU }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endif %}
+                            
+                            {% if system_detail[0].Storage != "N/A" %}
+                            <tr>
+                                <td>Storage</td>
+                                {% for data in system_detail %}
+                                    <td>{{ data.Storage }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endif %}
+                        </table>
+                        <br>
+                    {% endif %}
                 {% else %}
                     <p>No data available yet</p>
                 {% endif %}

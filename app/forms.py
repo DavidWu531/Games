@@ -2,6 +2,9 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, ValidationError
 from wtforms.validators import DataRequired, Length
 
+import app.routes as routes
+import app.models as models
+
 
 class LoginForm(FlaskForm):
     username = StringField('AccountUsername',
@@ -39,6 +42,10 @@ class RegisterForm(FlaskForm):
         # Checks if password contains spaces since they're not recommended
         if " " in username:
             raise ValidationError("Username cannot contain spaces")
+
+        existing_user = routes.execute_query(models.Accounts, operation="SELECT", filters={"AccountUsername": username})
+        if existing_user:
+            raise ValidationError("Account already exists")
 
     def validate_password(self, field):
         password = field.data

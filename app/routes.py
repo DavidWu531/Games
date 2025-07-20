@@ -1,6 +1,6 @@
 from werkzeug.exceptions import HTTPException
 from app import app
-from flask import render_template, abort, redirect, session, request
+from flask import render_template, abort, redirect, session, request, flash
 from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_bcrypt import Bcrypt
@@ -177,7 +177,6 @@ def login():
         else:
             # Fail log in, show error message and reload page
             form.username.errors.append("Invalid username or password")
-            return redirect("/login")
 
     return render_template('login.html', form=form)
 
@@ -189,7 +188,7 @@ def register():
         temp_username = form.username.data
         temp_password = form.password.data
 
-        # Hash password
+        # Hash password, salt built-in
         hashed_password = bcrypt.generate_password_hash(temp_password).decode('utf-8')
         data = {
             "AccountUsername": temp_username,
@@ -199,18 +198,13 @@ def register():
         try:
             # Attempt to create new user
             execute_query(models.Accounts, operation="INSERT", data=data)
+            flash("Account created successfully, you may log in")
             return redirect('/login')
-        except Exception as e:
+        except Exception as e:  # noqa F841
             # Rollback in case of database error
             db.session.rollback()
-
-            # Handle constraint violation (UNIQUE constraint)
-            if 'UNIQUE constraint failed' in str(e):
-                form.username.errors.append("Account already exists")
-            else:
-                # Other database errors
-                form.username.errors.append("An error occurred, please try again later")
-            return render_template("register.html", form=form)
+            # Handle non-uniqueness errors only now
+            form.username.errors.append("An error occurred, please try again later")
 
     return render_template('register.html', form=form)
 
@@ -229,7 +223,7 @@ def delete():
         return redirect('/')
 
     try:
-        execute_query(models.Accounts, operation="DELETE", filters={"AccountID": user_id})
+        execute_query(models.Accounts, operation="DELETE", id=user_id)
     except Exception as e:  # noqa F841
         print("An error occurred, please try again later")
     else:
