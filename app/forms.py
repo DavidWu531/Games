@@ -1,9 +1,15 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, ValidationError
-from wtforms.validators import DataRequired, Length
+from wtforms import DateField, DecimalField, StringField, PasswordField, SubmitField, ValidationError, TextAreaField, SelectMultipleField, widgets
+from wtforms.validators import DataRequired, Length, Optional
+
 
 import app.routes as routes
 import app.models as models
+
+
+class MultiCheckboxField(SelectMultipleField):
+    widget = widgets.ListWidget(prefix_label=False)
+    option_widget = widgets.CheckboxInput()
 
 
 class LoginForm(FlaskForm):
@@ -52,3 +58,18 @@ class RegisterForm(FlaskForm):
 
         if " " in password:
             raise ValidationError("Password cannot contain spaces")
+
+
+class AdminGameForm(FlaskForm):
+    game_name = StringField("Game Name", validators=[DataRequired()])
+    game_description = TextAreaField("Description", validators=[Optional()])
+    game_developer = StringField("Developer", validators=[Optional()])
+    # game_image = StringField("Image URL", validators=[Optional()])
+
+    categories = MultiCheckboxField("Categories", coerce=int)
+    platforms = MultiCheckboxField("Platforms", coerce=int)
+
+    release_date = DateField("Release Date", format="%Y-%m-%d", validators=[Optional()])
+    game_price = DecimalField("Price (NZD)", places=2, validators=[Optional()])
+
+    submit = SubmitField("Add Game")

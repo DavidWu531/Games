@@ -83,13 +83,34 @@ footer {
     padding: 1rem;
 }
 
+.account_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 .account_border {
     text-align: center;
-    align-items: center;
     border: 2px solid #ccc;
     border-radius: 10px;
     padding: 20px;
     width: 400px;                 
+    background-color: #f9f9f9;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin_game_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.admin_game_border {
+    text-align: center;
+    border: 2px solid #ccc;
+    border-radius: 10px;
+    padding: 20px;
+    width: 900px;                 
     background-color: #f9f9f9;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -121,6 +142,13 @@ input {
     color: white;
     padding: 14px 25px;
     display: inline-block;
+}
+
+.add_game_button {
+    background-color: red;
+    color: white;
+    padding: 14px 25px;
+    display: inline-block; 
 }
 
 .stars_container {

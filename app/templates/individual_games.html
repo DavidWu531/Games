@@ -53,6 +53,7 @@
                             {% if chosen_platform %}
                                 Price: ${{ "%.2f"|format(data.Price) }}<br>
                                 Release Date: {{ data.ReleaseDate }}<br>
+                                {{ game.GameDescription }}
                             {% endif %}
                         </p>
                     {% endfor %}
@@ -130,4 +131,30 @@
     {% else %}
         <p>No games found.</p>
     {% endif %}
+<div>
+    {% if games %}
+        {% for game in games %}
+            {% if prev_id %}
+                <a href="/game/{{ prev_id }}" style="float: left">
+                    <button type="submit">
+                        <p>Previous Game</p>
+                    </button>
+                </a>
+            {% else %}
+                <a href="/game" style="float: left">
+                    <button type="submit">
+                        <p>Back to all games</p>
+                    </button>
+                </a>
+            {% endif %}
+            {% if next_id %}
+                <a href="/game/{{ next_id }}" style="float: right">
+                    <button type="submit">
+                        <p>Next Game</p>
+                    </button>
+                </a>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>
 {% endblock %}

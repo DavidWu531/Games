@@ -1,0 +1,32 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <p>Want a new game to show up? Admins can add them here</p><br><br>
+    <div class="admin_game_container">
+        <div class="admin_game_border">
+            <form action="/admin/add_game" method="POST">
+                {{ form.hidden_tag() }}
+                <h3>{{ form.game_name.label }}:</h3> {{ form.game_name }}<br>
+                <h3>{{ form.game_description.label }}:</h3> {{ form.game_description }}<br>
+                <h3>{{ form.game_developer.label }}:</h3> {{ form.game_developer }}<br>
+                <h3>{{ form.release_date.label }}:</h3> {{ form.release_date }}<br>
+                <h3>{{ form.game_price.label }}:</h3> {{ form.game_price }}<br>
+                <h3>{{ form.categories.label }}:</h3>
+                <div style="display: grid; grid-template-columns: repeat(6, 150px); gap: 8px;">
+                    {% for subfield in form.categories %}
+                        <label>{{ subfield() }} {{ subfield.label.text }}</label><br>
+                    {% endfor %}
+                </div><br>
+                <h3>{{ form.platforms.label }}:</h3> {{ form.platforms(size=3, multiple=True) }}<br>
+                {{ form.submit }}<br>
+            </form>
+        </div>
+    </div>
+{% endblock %}

@@ -119,15 +119,19 @@ class Reviews(db.Model):
 
 class Accounts(db.Model):
     __tablename__ = "Accounts"
+    __table_args__ = (
+        db.CheckConstraint('AccountIsAdmin IN (0, 1)', name='check_admin_boolean'),
+    )
 
     AccountID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     AccountUsername = db.Column(db.Text, nullable=False, unique=True)
     AccountPassword = db.Column(db.Text, nullable=False)
+    AccountIsAdmin = db.Column(db.Integer, nullable=False)
 
-    def __init__(self, AccountUsername, AccountPassword):
+    def __init__(self, AccountUsername, AccountPassword, AccountIsAdmin=0):
         self.AccountUsername = AccountUsername
         self.AccountPassword = AccountPassword
-
+        self.AccountIsAdmin = AccountIsAdmin
 
 # class Pizza(db.Model):
 #     __tablename__ = "Pizza"

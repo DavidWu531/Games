@@ -4,7 +4,7 @@ from flask import render_template, abort, redirect, session, request, flash
 from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_bcrypt import Bcrypt
-from sqlalchemy import exc
+from sqlalchemy import exc, asc, desc
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 db = SQLAlchemy()
@@ -15,7 +15,7 @@ app.secret_key = os.urandom(12)
 
 
 import app.models as models  # noqa: E402
-from app.forms import LoginForm, RegisterForm  # noqa: E402
+from app.forms import AdminGameForm, LoginForm, RegisterForm  # noqa: E402
 
 
 # Helper function for querying data
@@ -33,11 +33,11 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
                 query = model.query
                 for column_name, value in filters.items():
                     column = getattr(model, column_name)
-                    if isinstance(value, list):
+                    if isinstance(value, list):  # Match any in list
                         query = query.filter(column.in_(value))
-                    elif isinstance(value, str):
+                    elif isinstance(value, str):  # Case-insensitive match
                         query = query.filter(column.ilike(f"{value}"))
-                    else:
+                    else:  # Exact match
                         query = query.filter(column == value)
                 return query.all() or []
 
@@ -76,10 +76,30 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
         elif operation == "DELETE":
             if id is None:
                 abort(400, description="ID not provided")
-            record = model.query.get_or_404(id)
+            record = model.query.get_or_404(id)  # Get existing record
             db.session.delete(record)
             db.session.commit()
             return []  # Returns empty list, indicates data deleted
+
+        # NAVIGATION OPERATION
+        elif operation == "NAVIGATION":
+            if id is None:
+                abort(400, "ID not provided")
+
+            # Get first column in primary key of model
+            id_column = list(model.__table__.primary_key.columns)[0]
+            id_attr_name = id_column.name  # Name of column as string
+
+            # Grab first row less than current row
+            prev_row = model.query.filter(id_column < id).order_by(desc(id_column)).first()
+            # Grab first row bigger than current row
+            next_row = model.query.filter(id_column > id).order_by(asc(id_column)).first()
+            return {
+                # Get ID column value based on name of primary key
+                "prev_id": getattr(prev_row, id_attr_name) if prev_row else 0,
+                "next_id": getattr(next_row, id_attr_name) if next_row else None
+            }  # 0 indicates no previous item (e.g., show 'Back to List'), None means no next item
+
         else:
             abort(400, description="Invalid operation")
 
@@ -234,9 +254,35 @@ def delete():
 @app.route('/dashboard')
 def dashboard():
     if "AccountID" in session:
-        return render_template('dashboard.html')
+        account = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
+        if account:
+            account = account[0]
+            username = account.AccountUsername
+            is_admin = account.AccountIsAdmin
+
+            if is_admin:
+                return redirect("/admin")
+
+            return render_template('dashboard.html', username=username, is_admin=is_admin)
     else:
         return redirect('/login')
+
+
+@app.route('/admin')
+def admin():
+    if "AccountID" in session:
+        account = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
+        if account:
+            account = account[0]
+            username = account.AccountUsername
+            is_admin = account.AccountIsAdmin
+
+            if not is_admin:
+                return redirect("/dashboard")
+
+            return render_template('dashboard.html', username=username, is_admin=is_admin)
+
+    return redirect('/login')
 
 
 # Home Page Route
@@ -293,9 +339,17 @@ def game(id):
         chosen_platform = request.form.get("platforms", "PC")
         platform_id = {"PC": 1, "PlayStation": 2, "Xbox": 3}
         platform_key = {"PC": ["Minimum", "Recommended"], "PlayStation": ["Normal"], "Xbox": ["Normal"]}
-        platform_detail = execute_query(models.GamePlatformDetails, operation="SELECT", filters={"GameID": id, "PlatformID": int(platform_id[chosen_platform])})
-        system_detail = execute_query(models.SystemRequirements, operation="SELECT", filters={"GameID": id, "Type": platform_key[chosen_platform], "PlatformID": platform_id[chosen_platform]})
-        return render_template('individual_games.html', games=games, user_rating=user_rating, chosen_platform=chosen_platform, platform_detail=platform_detail, system_detail=system_detail)
+        platform_detail = execute_query(models.GamePlatformDetails,
+                                        operation="SELECT",
+                                        filters={"GameID": id, "PlatformID": int(platform_id[chosen_platform])})
+        system_detail = execute_query(models.SystemRequirements,
+                                      operation="SELECT",
+                                      filters={"GameID": id, "Type": platform_key[chosen_platform],
+                                               "PlatformID": platform_id[chosen_platform]})
+        nav_ids = execute_query(models.Games, operation="NAVIGATION", id=id)
+        return render_template('individual_games.html', games=games, user_rating=user_rating,
+                               chosen_platform=chosen_platform, platform_detail=platform_detail,
+                               system_detail=system_detail, prev_id=nav_ids["prev_id"], next_id=nav_ids["next_id"])
 
 
 # Displays platforms, allows id=0 for redirecting
@@ -353,3 +407,49 @@ def rate_game(id):
 
     # Redirects to current game page
     return redirect("/game/" + str(id))
+
+
+@app.route('/admin/add_game', methods=["GET", "POST"])
+def add_game():
+    if "AccountID" not in session:
+        return redirect("/login")
+
+    user = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
+    if not user:
+        return redirect("/dashboard")
+    elif user:
+        user = user[0]
+        if not user.AccountIsAdmin:
+            return redirect("/dashboard")
+
+    form = AdminGameForm()
+    form.categories.data = []
+    form.platforms.data = []
+
+    all_categories = execute_query(models.Categories, operation="SELECT")
+    form.categories.choices = [(category.CategoryID, category.CategoryName) for category in all_categories]
+    all_platforms = execute_query(models.Platforms, operation="SELECT")
+    form.platforms.choices = [(platform.PlatformID, platform.PlatformName) for platform in all_platforms]
+
+    if form.validate_on_submit():
+        execute_query(models.Games, operation="INSERT", data={
+            "GameName": form.game_name.data,
+            "GameDescription": form.game_description.data,
+            "GameDeveloper": form.game_developer.data
+        })
+
+        new_game = execute_query(models.Games, operation="SELECT", filters={"GameName": form.game_name.data})
+        new_game_id = new_game[0].GameID
+
+        for category_id in form.categories.data:
+            execute_query(models.GameCategories, operation="INSERT", data={"GameID": new_game_id, "CategoryID": category_id})
+
+        for platform_id in form.platforms.data:
+            execute_query(models.GamePlatforms, operation="INSERT", data={"GameID": new_game_id, "PlatformID": platform_id})
+
+        flash(f"Game {new_game[0].GameName} created successfully")
+        return redirect("/game/" + str(new_game_id))
+    else:
+        print("Form errors:", form.errors)
+
+    return render_template("admin.html", form=form)
