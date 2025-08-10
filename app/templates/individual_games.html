@@ -6,6 +6,11 @@
         <div class="grid_container">
         {% for game in games %}
             <div class="grid_item">
+                {% if is_admin %}
+                    <a href="/admin/game/update/{{ game.GameID }}">
+                        <img src="{{ url_for('static', filename='images/pen.png') }}" height="50px" width="50px">
+                    </a>
+                {% endif %}
                 <img src="{{ url_for('static', filename='images/icon.png') }}"><br>
                 <p>{{ game.GameName }}</p>
                 {% if session %}

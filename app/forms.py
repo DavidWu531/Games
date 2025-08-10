@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import DateField, DecimalField, StringField, PasswordField, SubmitField, ValidationError, TextAreaField, SelectMultipleField, widgets
-from wtforms.validators import DataRequired, Length, Optional
+from wtforms import DateField, DecimalField, StringField, PasswordField, SubmitField, \
+    ValidationError, TextAreaField, SelectMultipleField, widgets, RadioField
+from wtforms.validators import DataRequired, Length, Optional, InputRequired
 
 
 import app.routes as routes
@@ -66,10 +67,24 @@ class AdminGameForm(FlaskForm):
     game_developer = StringField("Developer", validators=[Optional()])
     # game_image = StringField("Image URL", validators=[Optional()])
 
-    categories = MultiCheckboxField("Categories", coerce=int)
-    platforms = MultiCheckboxField("Platforms", coerce=int)
+    categories = MultiCheckboxField("Categories", coerce=int, validators=[InputRequired()])
+    platforms = MultiCheckboxField("Platforms", coerce=int, validators=[InputRequired()])
 
     release_date = DateField("Release Date", format="%Y-%m-%d", validators=[Optional()])
-    game_price = DecimalField("Price (NZD)", places=2, validators=[Optional()])
+    price = DecimalField("Price (NZD)", places=2, validators=[Optional()])
+
+    pc_type = RadioField("Requirement Type", choices=[
+        ("Minimum", "Minimum"), ("Recommended", "Recommended")], validators=[Optional()])
+    pc_os = StringField("OS", validators=[Optional()])
+    pc_ram = StringField("RAM", validators=[Optional()])
+    pc_cpu = StringField("CPU", validators=[Optional()])
+    pc_gpu = StringField("GPU", validators=[Optional()])
+    pc_storage = StringField("Storage", validators=[Optional()])
+
+    ps_os = StringField("OS", validators=[Optional()])
+    ps_storage = StringField("Storage", validators=[Optional()])
+
+    xb_os = StringField("OS", validators=[Optional()])
+    xb_storage = StringField("Storage", validators=[Optional()])
 
     submit = SubmitField("Add Game")

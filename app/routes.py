@@ -336,6 +336,13 @@ def game(id):
             if user_rating:  # Get rating based on current game and current user
                 user_rating = user_rating[0].Rating
 
+        is_admin = 0
+        if "AccountID" in session:
+            account = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
+            if account:
+                account = account[0]
+                is_admin = account.AccountIsAdmin
+
         chosen_platform = request.form.get("platforms", "PC")
         platform_id = {"PC": 1, "PlayStation": 2, "Xbox": 3}
         platform_key = {"PC": ["Minimum", "Recommended"], "PlayStation": ["Normal"], "Xbox": ["Normal"]}
@@ -347,7 +354,7 @@ def game(id):
                                       filters={"GameID": id, "Type": platform_key[chosen_platform],
                                                "PlatformID": platform_id[chosen_platform]})
         nav_ids = execute_query(models.Games, operation="NAVIGATION", id=id)
-        return render_template('individual_games.html', games=games, user_rating=user_rating,
+        return render_template('individual_games.html', games=games, user_rating=user_rating, is_admin=is_admin,
                                chosen_platform=chosen_platform, platform_detail=platform_detail,
                                system_detail=system_detail, prev_id=nav_ids["prev_id"], next_id=nav_ids["next_id"])
 
@@ -409,7 +416,7 @@ def rate_game(id):
     return redirect("/game/" + str(id))
 
 
-@app.route('/admin/add_game', methods=["GET", "POST"])
+@app.route('/admin/game/add', methods=["GET", "POST"])
 def add_game():
     if "AccountID" not in session:
         return redirect("/login")
@@ -446,10 +453,74 @@ def add_game():
 
         for platform_id in form.platforms.data:
             execute_query(models.GamePlatforms, operation="INSERT", data={"GameID": new_game_id, "PlatformID": platform_id})
+            execute_query(models.GamePlatforms, operation="INSERT", data={
+                "GameID": new_game_id,
+                "PlatformID": platform_id,
+                "Price": form.price.data,
+                "ReleaseDate": form.release_date.data})
+            if platform_id == 1:
+                execute_query(models.SystemRequirements, operation="INSERT", data={
+                    "GameID": new_game_id,
+                    "PlatformID": 1,
+                    "Type": form.pc_type.data if form.pc_type.data is not None else "Minimum",
+                    "OS": form.os.data if form.os.data is not None else "N/A",
+                    "RAM": form.ram.data if form.ram.data is not None else "N/A",
+                    "CPU": form.cpu.data if form.cpu.data is not None else "N/A",
+                    "GPU": form.gpu.data if form.gpu.data is not None else "N/A",
+                    "Storage": form.storage.data if form.storage.data is not None else "N/A"
+                })
+            else:
+                execute_query(models.SystemRequirements, operation="INSERT", data={
+                    "GameID": new_game_id,
+                    "PlatformID": platform_id,
+                    "Type": "Normal",
+                    "OS": form.os.data if form.os.data is not None else "N/A",
+                    "RAM": "N/A",
+                    "CPU": "N/A",
+                    "GPU": "N/A",
+                    "Storage": form.storage.data if form.storage.data is not None else "N/A"
+                })
 
         flash(f"Game {new_game[0].GameName} created successfully")
         return redirect("/game/" + str(new_game_id))
     else:
         print("Form errors:", form.errors)
 
-    return render_template("admin.html", form=form)
+    return render_template("admin.html", form=form, form_action="/admin/game/add")
+
+
+@app.route('/admin/game/update/', defaults={'id': None}, methods=["GET", "POST"])
+@app.route('/admin/game/update/<int:id>', methods=["GET", "POST"])
+def update_game(id):
+    if "AccountID" not in session:
+        return redirect("/login")
+
+    user = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
+    if not user:
+        return redirect("/dashboard")
+    elif user:
+        user = user[0]
+        if not user.AccountIsAdmin:
+            return redirect("/dashboard")
+
+    return render_template("admin.html")
+
+
+@app.route("/admin/game/delete/<int:id>")
+def delete_game(id):
+    game = None
+    if "AccountID" not in session:
+        return redirect("/login")
+
+    user = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
+    if not user:
+        return redirect("/dashboard")
+    elif user:
+        user = user[0]
+        if not user.AccountIsAdmin:
+            return redirect("/dashboard")
+
+    game = execute_query(models.Games, operation="SELECT", id=id)
+    execute_query(models.Games, operation="DELETE", id=game.GameID)
+    flash("Game Deleted")
+    return redirect("/admin")
