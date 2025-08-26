@@ -4,10 +4,10 @@
     <h2>Categories</h2>
     {% if categories %}
         <ul>
-        <div class="grid_container">
+        <div class="all_grid_container">
         {% for category in categories %}
             <a href="/category/{{ category.CategoryID }}" class="grid_link">
-                <div class="grid_item">
+                <div class="all_grid_item">
                     {{ category.CategoryName }}<br>
                     <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
                 </div>

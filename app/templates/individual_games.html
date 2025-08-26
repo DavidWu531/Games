@@ -1,165 +1,179 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h2>Games</h2>
-    {% if games %}
-        <div class="grid_container">
-        {% for game in games %}
-            <div class="grid_item">
-                {% if is_admin %}
-                    <a href="/admin/game/update/{{ game.GameID }}">
-                        <img src="{{ url_for('static', filename='images/pen.png') }}" height="50px" width="50px">
-                    </a>
-                {% endif %}
-                <img src="{{ url_for('static', filename='images/icon.png') }}"><br>
-                <p>{{ game.GameName }}</p>
-                {% if session %}
-                    <div class="game_rating"> 
-                        <form method="POST" action="/rate_game/{{ game.GameID }}">
-                            <div class="stars_counter">
-                                {% for star in range(1, 6) %}
-                                    <span class="star_wrapper">
-                                        <input type="radio" name="rating" value="{{ star }}" 
-                                            id="star{{ star }}"
-                                            {% if user_rating == star %}checked{% endif %}
-                                            onchange="this.form.submit();">
-                                        <label for="star{{ star }}">&#9733;</label>
-                                    </span>
-                                {% endfor %}
-                                <span class="clear_wrapping">
-                                    <input type="radio" name="rating" value="0" 
-                                    id="star0"
-                                    {% if not user_rating %}checked{% endif %}
-                                    onchange="this.form.submit();">
-                                    <label for="star0">Clear</label>
-                                </span>
-                            </div>
-                        </form>
-                    </div>
-                {% endif %}
-            </div>
-            <div class="grid_item">
-                <div class="dropdown">
-                    <form method="POST">
-                        {% if chosen_platform %}
-                            <label for="platforms">Platform: {{ chosen_platform }}</label>
-                        {% endif %}<br>
-                        <select id="platforms" name="platforms" onchange="this.form.submit()">
-                            <option value="PC" {% if chosen_platform == "PC" %}selected{% endif %}>PC</option>
-                            <option value="PlayStation" {% if chosen_platform == "PlayStation" %}selected{% endif %}>PlayStation</option>
-                            <option value="Xbox" {% if chosen_platform == "Xbox" %}selected{% endif %}>Xbox</option>
-                        </select>
-                    </form>
-                </div>
-                {% if platform_detail %}
-                <ul>
-                    {% for data in platform_detail %}
-                        <p>
-                            {% if chosen_platform %}
-                                Price: ${{ "%.2f"|format(data.Price) }}<br>
-                                Release Date: {{ data.ReleaseDate }}<br>
-                                {{ game.GameDescription }}
-                            {% endif %}
-                        </p>
+{% if games %}
+<div class="individual_grid_container">
+    {% for game in games %}
+    <!-- Admin Only -->
+    <div class="individual_grid_item">
+        {% if is_admin %}
+        <a href="/admin/game/update/{{ game.GameID }}">
+            <img src="{{ url_for('static', filename='images/pen.png') }}" height="50px" width="50px">
+        </a>
+        <a href="javascript:void(0);" onclick="delete_game({{ game.GameID }})">
+            <img src="{{ url_for('static', filename='images/bin.png')}}" height="50px" width="50px">
+        </a>
+        {% endif %}
+        <br>
+
+        <!-- Game Icon and Name -->
+        <img src="{{ url_for('static', filename='images/icon.png') }}" height="100px" width="100px"><br>
+        <p>{{ game.GameName }}</p>
+
+        <!-- Rating System -->
+        {% if session %}
+        <div class="game_rating">
+            <form method="POST" action="/rate_game/{{ game.GameID }}">
+                <div class="stars_counter">
+                    {% for star in range(1, 6) %}
+                    <span class="star_wrapper">
+                        <input type="radio" name="rating" value="{{ star }}" id="star{{ star }}" {% if user_rating==star
+                            %}checked{% endif %} onchange="this.form.submit();">
+                        <label for="star{{ star }}">&#9733;</label>
+                    </span>
                     {% endfor %}
-                </ul>
-                {% else %}
-                    <p>No data available yet</p>
-                {% endif %}
-            </div>
-            <div class="grid_item">
-                {% if system_detail %}
-                    {% if chosen_platform %}
-                        <table>
-                            <tr>
-                                <th>System Requirement</th>
-                                {% if chosen_platform == "PC" %}
-                                    <th>Minimum</th>
-                                    <th>Recommended</th>
-                                {% else %}
-                                    <th>Normal</th>
-                                {% endif %}
-                            </tr>
-                            {% if system_detail[0].OS != "N/A" %}
-                            <tr>
-                                <td>OS</td>
-                                {% for data in system_detail %}
-                                    <td>{{ data.OS }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endif %}
-                            
-                            {% if system_detail[0].RAM != "N/A" %}
-                            <tr>
-                                <td>RAM</td>
-                                {% for data in system_detail %}
-                                    <td>{{ data.RAM }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endif %}
-                            
-                            {% if system_detail[0].CPU != "N/A" %}
-                            <tr>
-                                <td>CPU</td>
-                                {% for data in system_detail %}
-                                    <td>{{ data.CPU }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endif %}
-                            
-                            {% if system_detail[0].GPU != "N/A" %}
-                            <tr>
-                                <td>GPU</td>
-                                {% for data in system_detail %}
-                                    <td>{{ data.GPU }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endif %}
-                            
-                            {% if system_detail[0].Storage != "N/A" %}
-                            <tr>
-                                <td>Storage</td>
-                                {% for data in system_detail %}
-                                    <td>{{ data.Storage }}</td>
-                                {% endfor %}
-                            </tr>
-                            {% endif %}
-                        </table>
-                        <br>
-                    {% endif %}
-                {% else %}
-                    <p>No data available yet</p>
-                {% endif %}
-            </div>
-        {% endfor %}
+
+                    <!-- Clear Rating -->
+                    <span class="clear_wrapping">
+                        <input type="radio" name="rating" value="0" id="star0" {% if not user_rating %}checked{% endif
+                            %} onchange="this.form.submit();">
+                        <label for="star0">Clear</label>
+                    </span>
+                </div>
+            </form>
         </div>
-    {% else %}
-        <p>No games found.</p>
+        {% endif %}
+    </div>
+
+    <!--Game Platform Info-->
+    <div class="individual_grid_item">
+        <div class="dropdown">
+            <form method="POST">
+                {% if chosen_platform %}
+                <label for="platforms">Platform: {{ chosen_platform }}</label>
+                {% endif %}<br>
+                <select id="platforms" name="platforms" onchange="this.form.submit()">
+                    <option value="PC" {% if chosen_platform=="PC" %}selected{% endif %}>PC</option>
+                    <option value="PlayStation" {% if chosen_platform=="PlayStation" %}selected{% endif %}>PlayStation
+                    </option>
+                    <option value="Xbox" {% if chosen_platform=="Xbox" %}selected{% endif %}>Xbox</option>
+                </select>
+            </form>
+        </div>
+
+        <!--Platform Details-->
+        {% if platform_detail %}
+        <ul>
+            {% for data in platform_detail %}
+            {% if chosen_platform %}
+            <p>
+                Price: ${{ "%.2f"|format(data.Price) }}<br>
+                Release Date: {{ data.ReleaseDate }}<br>
+                {{ game.GameDescription }}
+            </p>
+            {% endif %}
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p>No data available yet</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<!--System Requirements-->
+<div class="system_requirement">
+    {% if system_detail %}
+    {% if chosen_platform %}
+    <table>
+        <tr>
+            <th>System Requirement</th>
+            {% if chosen_platform == "PC" %}
+            <th>Minimum</th>
+            <th>Recommended</th>
+            {% else %}
+            <th>Normal</th>
+            {% endif %}
+        </tr>
+        {% if system_detail[0].OS != "N/A" %}
+        <tr>
+            <td>OS</td>
+            {% for data in system_detail %}
+            <td>{{ data.OS }}</td>
+            {% endfor %}
+        </tr>
+        {% endif %}
+
+        {% if system_detail[0].RAM != "N/A" %}
+        <tr>
+            <td>RAM</td>
+            {% for data in system_detail %}
+            <td>{{ data.RAM }}</td>
+            {% endfor %}
+        </tr>
+        {% endif %}
+
+        {% if system_detail[0].CPU != "N/A" %}
+        <tr>
+            <td>CPU</td>
+            {% for data in system_detail %}
+            <td>{{ data.CPU }}</td>
+            {% endfor %}
+        </tr>
+        {% endif %}
+
+        {% if system_detail[0].GPU != "N/A" %}
+        <tr>
+            <td>GPU</td>
+            {% for data in system_detail %}
+            <td>{{ data.GPU }}</td>
+            {% endfor %}
+        </tr>
+        {% endif %}
+
+        {% if system_detail[0].Storage != "N/A" %}
+        <tr>
+            <td>Storage</td>
+            {% for data in system_detail %}
+            <td>{{ data.Storage }}</td>
+            {% endfor %}
+        </tr>
+        {% endif %}
+    </table>
+    <br>
     {% endif %}
+    {% else %}
+    <p>No data available yet</p>
+    {% endif %}
+</div>
+{% else %}
+<p>No games found.</p>
+{% endif %}
+<!--Navigation-->
 <div>
     {% if games %}
-        {% for game in games %}
-            {% if prev_id %}
-                <a href="/game/{{ prev_id }}" style="float: left">
-                    <button type="submit">
-                        <p>Previous Game</p>
-                    </button>
-                </a>
-            {% else %}
-                <a href="/game" style="float: left">
-                    <button type="submit">
-                        <p>Back to all games</p>
-                    </button>
-                </a>
-            {% endif %}
-            {% if next_id %}
-                <a href="/game/{{ next_id }}" style="float: right">
-                    <button type="submit">
-                        <p>Next Game</p>
-                    </button>
-                </a>
-            {% endif %}
-        {% endfor %}
+    {% for game in games %}
+    {% if prev_id %}
+    <a href="/game/{{ prev_id }}" style="float: left">
+        <button type="submit">
+            <p>Previous Game</p>
+        </button>
+    </a>
+    {% else %}
+    <a href="/game" style="float: left">
+        <button type="submit">
+            <p>Back to all games</p>
+        </button>
+    </a>
+    {% endif %}
+    {% if next_id %}
+    <a href="/game/{{ next_id }}" style="float: right">
+        <button type="submit">
+            <p>Next Game</p>
+        </button>
+    </a>
+    {% endif %}
+    {% endfor %}
     {% endif %}
 </div>
 {% endblock %}

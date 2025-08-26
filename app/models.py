@@ -7,15 +7,16 @@ from app.routes import db
 # )
 
 
-GameCategories = db.Table("GameCategories",
-                          db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE")),
-                          db.Column("CategoryID", db.Integer, db.ForeignKey("Categories.CategoryID", ondelete="CASCADE"))
-                          )
+class GameCategories(db.Model):
+    __tablename__ = "GameCategories"
+    GameID = db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE"), primary_key=True)
+    CategoryID = db.Column("CategoryID", db.Integer, db.ForeignKey("Categories.CategoryID", ondelete="CASCADE"), primary_key=True)
 
-GamePlatforms = db.Table("GamePlatforms",
-                         db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE")),
-                         db.Column("PlatformID", db.Integer, db.ForeignKey("Platforms.PlatformID", ondelete="CASCADE"))
-                         )
+
+class GamePlatforms(db.Model):
+    __tablename__ = "GamePlatforms"
+    GameID = db.Column("GameID", db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE"), primary_key=True)
+    PlatformID = db.Column("PlatformID", db.Integer, db.ForeignKey("Platforms.PlatformID", ondelete="CASCADE"), primary_key=True)
 
 
 class Games(db.Model):

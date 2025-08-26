@@ -4,10 +4,10 @@
     <h2>Games</h2>
     {% if games %}
         <ul>
-        <div class="grid_container">
+        <div class="all_grid_container">
             {% for game in games %}
             <a href="/game/{{ game.GameID }}" class="grid_link">
-                <div class="grid_item">
+                <div class="all_grid_item">
                     {{ game.GameName }}<br>
                     <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
                 </div>

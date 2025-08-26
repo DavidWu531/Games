@@ -1,27 +1,26 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h2>Platforms</h2>
-    {% if platform %}
-        <h3>{{ platform.PlatformName }}</h3>
-        <p>{{ platform.PlatformDescription }}</p>
-        {% if platform.games %}
-            <div class="grid_container">
-                {% for game in platform.games %}
-                <a href="/game/{{ game.GameID }}" class="grid_link">
-                    <div class="grid_item">
-                        {{ game.GameName }}<br>
-                        <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>No games listed</p>
-        {% endif %}
-            <br>
-        </ul>
-    {% else %}
-        <p>No platforms found.</p>
-    {% endif %}
+{% if platform %}
+<h3>{{ platform.PlatformName }}</h3>
+<p>{{ platform.PlatformDescription }}</p>
+{% if platform.games %}
+<div class="all_grid_container">
+    {% for game in platform.games %}
+    <a href="/game/{{ game.GameID }}" class="grid_link">
+        <div class="all_grid_item">
+            {{ game.GameName }}<br>
+            <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<p>No games listed</p>
+{% endif %}
+<br>
+</ul>
+{% else %}
+<p>No platforms found.</p>
+{% endif %}
 {% endblock %}
