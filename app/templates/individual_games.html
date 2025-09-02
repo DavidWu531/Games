@@ -2,6 +2,13 @@
 
 {% block content %}
 {% if games %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+{% for category, message in messages %}
+<p class="{{ category }}" style="text-align: center;"><strong>{{ message }}</strong></p>
+{% endfor %}
+{% endif %}
+{% endwith %}
 <div class="individual_grid_container">
     {% for game in games %}
     <!-- Admin Only -->
@@ -17,7 +24,8 @@
         <br>
 
         <!-- Game Icon and Name -->
-        <img src="{{ url_for('static', filename='images/icon.png') }}" height="100px" width="100px"><br>
+        <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="100px"
+            width="100px"><br>
         <p>{{ game.GameName }}</p>
 
         <!-- Rating System -->

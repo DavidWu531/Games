@@ -8,15 +8,15 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-<p>Want a new game to show up? Admins can add them here</p><br><br>
+<h1 style="text-align: center;">{{ "Add Game" if form_type=="INSERT" else "Update Game"}}</h1><br><br>
 <div class="admin_game_container">
     <div class="admin_game_border">
-        <form action="{{ form_action }}" method="POST">
+        <form action="{{ form_action }}" method="POST" enctype="multipart/form-data">
             {% if form.errors %}
             <p>Please fix the following errors:</p>
             {% for field_name, error_list in form.errors.items() %}
             {% for error in error_list %}
-            <p>{{ error }}</p>
+            <p class="error"><strong>{{ error }}</strong></p>
             {% endfor %}
             {% endfor %}
             {% endif %}
@@ -24,6 +24,7 @@
             <h3>{{ form.game_name.label }}:</h3> {{ form.game_name }}<br>
             <h3>{{ form.game_description.label }}:</h3> {{ form.game_description }}<br>
             <h3>{{ form.game_developer.label }}:</h3> {{ form.game_developer }}<br>
+            <h3>{{ form.game_image.label }}:</h3> {{ form.game_image() }}<br>
             <h3>{{ form.categories.label }}:</h3>
             <div style="display: grid; grid-template-columns: repeat(6, 150px); gap: 8px;">
                 {% for subfield in form.categories %}
@@ -39,12 +40,22 @@
             </div><br>
             <div id="pc_requirements" style="display: none;">
                 <h2>PC Details</h2><br>
-                <h3>{{ form.pc_type.label }}:</h3> {{ form.pc_type }}<br>
-                <h3>{{ form.pc_os.label }}:</h3> {{ form.pc_os }}<br>
-                <h3>{{ form.pc_ram.label }}:</h3> {{ form.pc_ram }}<br>
-                <h3>{{ form.pc_cpu.label }}:</h3> {{ form.pc_cpu }}<br>
-                <h3>{{ form.pc_gpu.label }}:</h3> {{ form.pc_gpu }}<br>
-                <h3>{{ form.pc_storage.label }}:</h3> {{ form.pc_storage }}<br>
+                <div id="min_pc_req"><br>
+                    <h3>Minimum System Requirements</h3>
+                    <h3>{{ form.min_pc_os.label }}:</h3> {{ form.min_pc_os }}<br>
+                    <h3>{{ form.min_pc_ram.label }}:</h3> {{ form.min_pc_ram }}<br>
+                    <h3>{{ form.min_pc_cpu.label }}:</h3> {{ form.min_pc_cpu }}<br>
+                    <h3>{{ form.min_pc_gpu.label }}:</h3> {{ form.min_pc_gpu }}<br>
+                    <h3>{{ form.min_pc_storage.label }}:</h3> {{ form.min_pc_storage }}<br>
+                </div><br>
+                <div id="rec_pc_req"><br>
+                    <h3>Recommended System Requirements</h3>
+                    <h3>{{ form.rec_pc_os.label }}:</h3> {{ form.rec_pc_os }}<br>
+                    <h3>{{ form.rec_pc_ram.label }}:</h3> {{ form.rec_pc_ram }}<br>
+                    <h3>{{ form.rec_pc_cpu.label }}:</h3> {{ form.rec_pc_cpu }}<br>
+                    <h3>{{ form.rec_pc_gpu.label }}:</h3> {{ form.rec_pc_gpu }}<br>
+                    <h3>{{ form.rec_pc_storage.label }}:</h3> {{ form.rec_pc_storage }}<br>
+                </div>
                 <h3>{{ form.pc_price.label }}:</h3> {{ form.pc_price }}<br>
                 <h3>{{ form.pc_release_date.label }}:</h3> {{ form.pc_release_date }}<br>
             </div>

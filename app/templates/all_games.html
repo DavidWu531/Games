@@ -9,7 +9,7 @@
             <a href="/game/{{ game.GameID }}" class="grid_link">
                 <div class="all_grid_item">
                     {{ game.GameName }}<br>
-                    <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
+                    <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="30px" width="30px">
                 </div>
             </a>
             {% endfor %}

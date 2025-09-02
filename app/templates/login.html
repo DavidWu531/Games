@@ -4,10 +4,10 @@
 <div class="account_container">
     <div class="account_border">
         <p>Login</p>
-        {% with messages = get_flashed_messages() %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for message in messages %}
-                    <li>{{ message }}</li>
+                {% for category, message in messages %}
+                    <li class="{{ category }}"><strong>{{ message }}</strong></li>
                 {% endfor %}
             {% endif %}
         {% endwith %}
@@ -16,7 +16,7 @@
                 <p>Please fix the following errors:</p>
                 {% for field_name, error_list in form.errors.items() %}
                     {% for error in error_list %}
-                        <p>{{ error }}</p>
+                        <p class="error"><strong>{{ error }}</strong></p>
                     {% endfor %}
                 {% endfor %}
             {% endif %}

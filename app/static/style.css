@@ -1,6 +1,9 @@
 * {
     margin: 0;
     text-decoration: none;
+    font-family: "Play", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 html, body {
@@ -129,6 +132,10 @@ input {
     position: relative;
 }
 
+input[type="radio"] {
+    opacity: 0;
+}
+
 .logout_button {
     background-color: red;
     color: white;
@@ -205,4 +212,20 @@ tr:nth-child(even) {
     justify-content: center;
     text-align: center;
     grid-column: 1 / -1;
+}
+
+.uneditable {
+    width: 300px;
+    height: 150px;
+    resize: none;
+}
+
+.error {
+    color: red;
+    font-size: 30px
+}
+
+.success {
+    color: green;
+    font-size: 30px
 }

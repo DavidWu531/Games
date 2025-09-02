@@ -32,6 +32,7 @@ class Games(db.Model):
     platforms = db.relationship("Platforms", secondary="GamePlatforms", back_populates="games")
     system_requirements = db.relationship("SystemRequirements", back_populates="games", cascade="all, delete-orphan")
     game_platform_details = db.relationship("GamePlatformDetails", back_populates="games", cascade="all, delete-orphan")
+    reviews = db.relationship("Reviews", back_populates="games", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Game {self.GameName}>"
@@ -105,14 +106,17 @@ class GamePlatformDetails(db.Model):
 
 class Reviews(db.Model):
     __tablename__ = "Reviews"
-    __tableargs__ = (
-        db.CheckConstraint("Rating BETWEEN 1 AND 5", name="check_rating_between_1_and_5")
+    __table_args__ = (
+        db.CheckConstraint("Rating BETWEEN 1 AND 5", name="check_rating_between_1_and_5"),
     )
 
     ReviewID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     UserID = db.Column(db.Integer, db.ForeignKey("Accounts.AccountID", ondelete="CASCADE"), nullable=False)
     GameID = db.Column(db.Integer, db.ForeignKey("Games.GameID", ondelete="CASCADE"), nullable=False)
     Rating = db.Column(db.Integer, nullable=False)
+
+    games = db.relationship("Games", back_populates="reviews")
+    accounts = db.relationship("Accounts", back_populates="reviews")
 
     def __repr__(self):
         return f"<Reviews {self.GameID} {self.ReviewID} for {self.GameID}"
@@ -128,6 +132,8 @@ class Accounts(db.Model):
     AccountUsername = db.Column(db.Text, nullable=False, unique=True)
     AccountPassword = db.Column(db.Text, nullable=False)
     AccountIsAdmin = db.Column(db.Integer, nullable=False)
+
+    reviews = db.relationship("Reviews", back_populates="accounts", cascade="all, delete-orphan")
 
     def __init__(self, AccountUsername, AccountPassword, AccountIsAdmin=0):
         self.AccountUsername = AccountUsername

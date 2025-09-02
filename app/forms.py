@@ -1,7 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import DateField, DecimalField, StringField, PasswordField, SubmitField, \
-    ValidationError, TextAreaField, SelectMultipleField, widgets, RadioField
+from wtforms import DateField, DecimalField, FileField, StringField, PasswordField, SubmitField, \
+    ValidationError, TextAreaField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, Length, Optional
+from flask_wtf.file import FileAllowed
 
 
 import app.routes as routes
@@ -84,29 +85,28 @@ class RegisterForm(FlaskForm):
         if existing_user:
             raise ValidationError("Account already exists")
 
-    def validate_password(self, field):
-        password = field.data
-
-        if " " in password:
-            raise ValidationError("Password cannot contain spaces")
-
 
 class AdminGameForm(FlaskForm):
     game_name = StringField("Game Name", validators=[DataRequired()])
-    game_description = TextAreaField("Description", validators=[Optional()])
+    game_description = TextAreaField("Description", validators=[Optional()], render_kw={"cols": 50, "rows": 10, "class": "uneditable"})
     game_developer = StringField("Developer", validators=[Optional()])
-    # game_image = StringField("Image URL", validators=[Optional()])
+    game_image = FileField("Game Image", validators=[FileAllowed(['jpg', 'jpeg', 'png'], "Images Only")])
 
     categories = MultiCheckboxField("Categories", coerce=int, validators=[at_least_one_checked])
     platforms = MultiCheckboxField("Platforms", coerce=int, validators=[at_least_one_checked])
 
-    pc_type = RadioField("Requirement Type", choices=[
-        ("Minimum", "Minimum"), ("Recommended", "Recommended")], validators=[Optional()])
-    pc_os = StringField("OS", validators=[Optional()], render_kw={"placeholder": "Enter OS (E.g. Windows 11)"})
-    pc_ram = StringField("RAM", validators=[Optional(), unit_validation], render_kw={"placeholder": "Enter RAM (E.g. 16GB)"})
-    pc_cpu = StringField("CPU", validators=[Optional()], render_kw={"placeholder": "Enter CPU (E.g. Intel i5-12400F)"})
-    pc_gpu = StringField("GPU", validators=[Optional()], render_kw={"placeholder": "Enter GPU (E.g. NVIDIA RTX 3070 Ti)"})
-    pc_storage = StringField("Storage", validators=[Optional(), unit_validation], render_kw={"placeholder": "Enter Storage (E.g. 50GB)"})
+    min_pc_os = StringField("OS", validators=[Optional()], render_kw={"placeholder": "Enter OS (E.g. Windows 11)"})
+    min_pc_ram = StringField("RAM", validators=[Optional(), unit_validation], render_kw={"placeholder": "Enter RAM (E.g. 16GB)"})
+    min_pc_cpu = StringField("CPU", validators=[Optional()], render_kw={"placeholder": "Enter CPU (E.g. Intel i5-12400F)"})
+    min_pc_gpu = StringField("GPU", validators=[Optional()], render_kw={"placeholder": "Enter GPU (E.g. NVIDIA RTX 3070 Ti)"})
+    min_pc_storage = StringField("Storage", validators=[Optional(), unit_validation], render_kw={"placeholder": "Enter Storage (E.g. 50GB)"})
+
+    rec_pc_os = StringField("OS", validators=[Optional()], render_kw={"placeholder": "Enter OS (E.g. Windows 11)"})
+    rec_pc_ram = StringField("RAM", validators=[Optional(), unit_validation], render_kw={"placeholder": "Enter RAM (E.g. 16GB)"})
+    rec_pc_cpu = StringField("CPU", validators=[Optional()], render_kw={"placeholder": "Enter CPU (E.g. Intel i5-12400F)"})
+    rec_pc_gpu = StringField("GPU", validators=[Optional()], render_kw={"placeholder": "Enter GPU (E.g. NVIDIA RTX 3070 Ti)"})
+    rec_pc_storage = StringField("Storage", validators=[Optional(), unit_validation], render_kw={"placeholder": "Enter Storage (E.g. 50GB)"})
+
     pc_price = DecimalField("Price (NZD)", places=2, validators=[Optional()], render_kw={"placeholder": "Enter Price (E.g. 1.00)"})
     pc_release_date = DateField("Release Date", format="%Y-%m-%d", validators=[Optional()])
 

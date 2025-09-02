@@ -1,5 +1,6 @@
 from datetime import datetime
 from werkzeug.exceptions import HTTPException
+from werkzeug.utils import secure_filename
 from app import app
 from flask import render_template, abort, redirect, session, request, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -65,9 +66,17 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
 
         # UPDATE OPERATION
         elif operation == "UPDATE":
-            if not data or not id:
-                abort(400, description="Not all fields were filled in")
-            record = model.query.get_or_404(id)  # Get existing record
+            if not isinstance(data, dict) or not data:
+                abort(400, description="No updated data provided")
+            record = None
+            if id is not None:
+                record = model.query.get_or_404(id)  # Get existing record
+            elif filters:
+                record = model.query.filter_by(**filters).first()
+                if not record:
+                    abort(400, description="Record not found")
+            else:
+                abort(400, description="No ID or filters provided")
             for key, value in data.items():
                 setattr(record, key, value)  # Update each field
             db.session.commit()
@@ -209,7 +218,7 @@ def login():
             return redirect("/dashboard")
         else:
             # Fail log in, show error message and reload page
-            flash("Invalid username or password")
+            flash("Invalid username or password", "error")
 
     return render_template('login.html', form=form)
 
@@ -231,13 +240,13 @@ def register():
         try:
             # Attempt to create new user
             execute_query(models.Accounts, operation="INSERT", data=data)
-            flash("Account created successfully, you may log in")
+            flash("Account created successfully, you may log in", "success")
             return redirect('/login')
         except Exception as e:  # noqa F841
             # Rollback in case of database error
             db.session.rollback()
             # Handle non-uniqueness errors only now
-            flash("An error occurred, please try again later")
+            flash("An error occurred, please try again later", "error")
 
     return render_template('register.html', form=form)
 
@@ -349,6 +358,7 @@ def game(id):
             if user_rating:  # Get rating based on current game and current user
                 user_rating = user_rating[0].Rating
 
+        # Check if user is admin
         is_admin = 0
         if "AccountID" in session:
             account = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
@@ -356,6 +366,7 @@ def game(id):
                 account = account[0]
                 is_admin = account.AccountIsAdmin
 
+        # Load platforms for platform-specific details
         chosen_platform = request.form.get("platforms", "PC")
         platform_id = {"PC": 1, "PlayStation": 2, "Xbox": 3}
         platform_key = {"PC": ["Minimum", "Recommended"], "PlayStation": ["Normal"], "Xbox": ["Normal"]}
@@ -366,6 +377,8 @@ def game(id):
                                       operation="SELECT",
                                       filters={"GameID": id, "Type": platform_key[chosen_platform],
                                                "PlatformID": platform_id[chosen_platform]})
+
+        # Miscellaneous: Get next and previous GameID for navigation
         nav_ids = execute_query(models.Games, operation="NAVIGATION", id=id)
         return render_template('individual_games.html', games=games, user_rating=user_rating, is_admin=is_admin,
                                chosen_platform=chosen_platform, platform_detail=platform_detail,
@@ -385,7 +398,6 @@ def category(id):
         categories = execute_query(models.Categories, "SELECT", id=0)
         return render_template('all_categories.html', categories=categories)
     else:
-        # Query data via helper function
         category = execute_query(models.Categories, "SELECT", id=id)
         games = category[0].games  # Returns all games under specific category
         return render_template('individual_categories.html', category=category[0], games=games)
@@ -412,6 +424,9 @@ def rate_game(id):
     if not user_id:  # Ensures only logged-in users can rate
         abort(401, "Rating is restricted to logged-in users only")
 
+    if id == 0:
+        return redirect("/game/0")
+
     value = int(request.form.get("rating", 0))  # Grab rating
 
     # Changes rating if rating already exists
@@ -431,86 +446,346 @@ def rate_game(id):
 
 @app.route('/admin/game/add', methods=["GET", "POST"])
 def add_game():
+    # Registered users only
     if "AccountID" not in session:
         return redirect("/login")
 
+    # Grab user
     user = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
     if not user:
         return redirect("/dashboard")
     elif user:
         user = user[0]
         if not user.AccountIsAdmin:
+            # Admin access only
             return redirect("/dashboard")
 
     form = AdminGameForm()
     form.submit.label.text = "Add Game"
 
+    # Load all platforms and categories
     all_categories = execute_query(models.Categories, operation="SELECT")
     form.categories.choices = [(category.CategoryID, category.CategoryName) for category in all_categories]
     all_platforms = execute_query(models.Platforms, operation="SELECT")
     form.platforms.choices = [(platform.PlatformID, platform.PlatformName) for platform in all_platforms]
 
+    # Check if all requirements are met
     if form.validate_on_submit():
+        image_filename = None
+        if form.game_image.data and hasattr(form.game_image.data, "filename"):
+            filename = secure_filename(form.game_image.data.filename)
+            form.game_image.data.save(os.path.join("app", "static", "images", filename))
+            image_filename = filename
+
+        # Insert game data
         execute_query(models.Games, operation="INSERT", data={
             "GameName": form.game_name.data,
             "GameDescription": form.game_description.data,
-            "GameDeveloper": form.game_developer.data
+            "GameDeveloper": form.game_developer.data,
+            "GameImage": image_filename
         })
 
+        # Grab ID of new game
         new_game = execute_query(models.Games, operation="SELECT", filters={"GameName": form.game_name.data})
         new_game_id = new_game[0].GameID
 
+        # Insert many-to-many relationship IDs
         for category_id in form.categories.data:
             execute_query(models.GameCategories, operation="INSERT", data={"GameID": new_game_id, "CategoryID": category_id})
 
         for platform_id in form.platforms.data:
             base_game_data = {"GameID": new_game_id, "PlatformID": platform_id}
             execute_query(models.GamePlatforms, operation="INSERT", data=base_game_data)
-            if platform_id == 1:
-                pc_price = float(form.pc_price.data) if form.pc_price.data is not None else None
-                system_data = {"Type": form.pc_type.data or "Minimum",
-                               "OS": form.pc_os.data or "N/A",
-                               "RAM": form.pc_ram.data or "N/A",
-                               "CPU": form.pc_cpu.data or "N/A",
-                               "GPU": form.pc_gpu.data or "N/A",
-                               "Storage": form.pc_storage.data or "N/A"
-                               }
-                price_data = {"Price": pc_price, "ReleaseDate": form.pc_release_date.data.isoformat() if form.pc_release_date.data else None}
-            elif platform_id == 2:
-                ps_price = float(form.ps_price.data) if form.ps_price.data is not None else None
-                system_data = {"Type": "Normal",
-                               "OS": form.ps_os.data or "N/A",
-                               "RAM": "N/A",
-                               "CPU": "N/A",
-                               "GPU": "N/A",
-                               "Storage": form.ps_storage.data or "N/A"
-                               }
-                price_data = {"Price": ps_price, "ReleaseDate": form.ps_release_date.data.isoformat() if form.ps_release_date.data else None}
-            elif platform_id == 3:
-                xb_price = float(form.xb_price.data) if form.xb_price.data is not None else None
-                system_data = {"Type": "Normal",
-                               "OS": form.xb_os.data or "N/A",
-                               "RAM": "N/A",
-                               "CPU": "N/A",
-                               "GPU": "N/A",
-                               "Storage": form.xb_storage.data or "N/A"
-                               }
-                price_data = {"Price": xb_price, "ReleaseDate": form.xb_release_date.data.isoformat() if form.xb_release_date.data else None}
 
-            execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | system_data)
+            # PC platform
+            if platform_id == 1:
+                # Get both minimum and recommended requirements
+                min_req_data = {"Type": "Minimum",
+                                "OS": form.min_pc_os.data or "N/A",
+                                "RAM": form.min_pc_ram.data or "N/A",
+                                "CPU": form.min_pc_cpu.data or "N/A",
+                                "GPU": form.min_pc_gpu.data or "N/A",
+                                "Storage": form.min_pc_storage.data or "N/A"
+                                }
+                rec_req_data = {"Type": "Recommended",
+                                "OS": form.rec_pc_os.data or "N/A",
+                                "RAM": form.rec_pc_ram.data or "N/A",
+                                "CPU": form.rec_pc_cpu.data or "N/A",
+                                "GPU": form.rec_pc_gpu.data or "N/A",
+                                "Storage": form.rec_pc_storage.data or "N/A"
+                                }
+
+                # Insert both types
+                execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | min_req_data)
+                execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | rec_req_data)
+            # Console platform
+            else:
+                # Get console data using ternary operations
+                normal_req_data = {"Type": "Normal",
+                                   "OS": (form.ps_os.data if platform_id == 2 else form.xb_os.data) or "N/A",
+                                   "RAM": "N/A",
+                                   "CPU": "N/A",
+                                   "GPU": "N/A",
+                                   "Storage": (form.ps_storage.data if platform_id == 2 else form.xb_storage.data) or "N/A"
+                                   }
+                execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | normal_req_data)
+
+            # Get raw data using ternary operations for PlatformID
+            raw_price = (form.pc_price.data if platform_id == 1 else
+                         form.ps_price.data if platform_id == 2 else
+                         form.xb_price.data)
+            raw_release_date = (form.pc_release_date.data if platform_id == 1 else
+                                form.ps_release_date.data if platform_id == 2 else
+                                form.xb_release_date.data)
+
+            # Load into dictionary of proper data type
+            price_data = {
+                "Price": float(raw_price) if raw_price is not None else None,
+                "ReleaseDate": raw_release_date.isoformat() if raw_release_date else None
+            }
             execute_query(models.GamePlatformDetails, operation="INSERT", data=base_game_data | price_data)
 
-        flash(f"Game {new_game[0].GameName} created successfully")
+        # Redirect to game upon adding
+        flash(f"Game {new_game[0].GameName} created successfully", "success")
         return redirect("/game/" + str(new_game_id))
     else:
         print("Form errors:", form.errors)
 
-    return render_template("admin.html", form=form, form_action="/admin/game/add")
+    return render_template("admin.html", form=form, form_action="/admin/game/add", form_type="INSERT")
 
 
 @app.route('/admin/game/update/', defaults={'id': None}, methods=["GET", "POST"])
 @app.route('/admin/game/update/<int:id>', methods=["GET", "POST"])
 def update_game(id):
+    # Registered users only
+    if "AccountID" not in session:
+        return redirect("/login")
+
+    # Redirect users to show all games (ID 0 doesn't exist)
+    if id == 0:
+        return redirect("/game/0")
+
+    # Grab user
+    user = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
+    if not user:
+        return redirect("/dashboard")
+    elif user:
+        user = user[0]
+        if not user.AccountIsAdmin:
+            # Admin access only
+            return redirect("/dashboard")
+
+    # Check game existence
+    game = execute_query(models.Games, operation="SELECT", id=id)
+    if not game:
+        abort(404, description="Game Not Found")
+    game = game[0]
+    form = AdminGameForm(obj=game)
+    form.submit.label.text = "Update Game"
+
+    # Load all categories and platforms
+    all_categories = execute_query(models.Categories, operation="SELECT")
+    form.categories.choices = [(category.CategoryID, category.CategoryName) for category in all_categories]
+    all_platforms = execute_query(models.Platforms, operation="SELECT")
+    form.platforms.choices = [(platform.PlatformID, platform.PlatformName) for platform in all_platforms]
+
+    # Get existing data on load (GET)
+    if request.method == "GET":
+        # Load existing game data (Games table)
+        game = execute_query(models.Games, operation="SELECT", id=id)[0]
+        form.game_name.data = game.GameName
+        form.game_description.data = game.GameDescription
+        form.game_developer.data = game.GameDeveloper
+
+        # Check all categories and platforms that were already checked
+        chosen_categories = execute_query(models.GameCategories, operation="SELECT", filters={"GameID": id})
+        form.categories.data = [category.CategoryID for category in chosen_categories]
+
+        chosen_platforms = execute_query(models.GamePlatforms, operation="SELECT", filters={"GameID": id})
+        form.platforms.data = [platform.PlatformID for platform in chosen_platforms]
+
+        # Execute queries based on platforms
+        for platform_id in form.platforms.data:
+            # Load existing system requirement and price detail data
+            system_requirement = execute_query(models.SystemRequirements, operation="SELECT", filters={"GameID": id, "PlatformID": platform_id})
+            price_detail = execute_query(models.GamePlatformDetails, operation="SELECT", filters={"GameID": id, "PlatformID": platform_id})
+            if price_detail:
+                price_detail = price_detail[0]
+
+            # PC platform
+            if platform_id == 1:
+                # Load checked requirement
+                min_req = next((requirement for requirement in system_requirement if requirement.Type == "Minimum"), None)
+                rec_req = next((requirement for requirement in system_requirement if requirement.Type == "Recommended"), None)
+
+                # Load system requirements based on type of requirement
+                if min_req:
+                    form.min_pc_os.data = min_req.OS
+                    form.min_pc_ram.data = min_req.RAM
+                    form.min_pc_cpu.data = min_req.CPU
+                    form.min_pc_gpu.data = min_req.GPU
+                    form.min_pc_storage.data = min_req.Storage
+
+                if rec_req:
+                    form.rec_pc_os.data = rec_req.OS
+                    form.rec_pc_ram.data = rec_req.RAM
+                    form.rec_pc_cpu.data = rec_req.CPU
+                    form.rec_pc_gpu.data = rec_req.GPU
+                    form.rec_pc_storage.data = rec_req.Storage
+
+                # Load existing price details (GamePlatformDetails)
+                form.pc_price.data = float(price_detail.Price) if price_detail and price_detail is not None else None
+                form.pc_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
+            elif platform_id == 2:
+                # Ditto for PS
+                normal_requirement = next((requirement for requirement in system_requirement if requirement.Type == "Normal"), None)
+                if normal_requirement:
+                    form.ps_os.data = normal_requirement.OS
+                    form.ps_storage.data = normal_requirement.Storage
+
+                form.ps_price.data = float(price_detail.Price) if price_detail and price_detail.Price is not None else None
+                form.ps_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
+            elif platform_id == 3:
+                # Ditto for XB
+                normal_requirement = next((requirement for requirement in system_requirement if requirement.Type == "Normal"), None)
+                if normal_requirement:
+                    form.xb_os.data = normal_requirement.OS
+                    form.xb_storage.data = normal_requirement.Storage
+
+                form.xb_price.data = float(price_detail.Price) if price_detail and price_detail.Price is not None else None
+                form.xb_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
+
+    if form.validate_on_submit():
+        if form.game_image.data and hasattr(form.game_image.data, "filename"):
+            filename = secure_filename(form.game_image.data.filename)
+            form.game_image.data.save(os.path.join("app", "static", "images", filename))
+            image_filename = filename
+        else:
+            image_filename = game.GameImage
+
+        # Update existing game data
+        execute_query(models.Games, operation="UPDATE", id=id, data={
+            "GameName": form.game_name.data,
+            "GameDescription": form.game_description.data,
+            "GameDeveloper": form.game_developer.data,
+            "GameImage": image_filename
+        })
+
+        # Delete and reinsert M2M GameCategories table
+        execute_query(models.GameCategories, operation="DELETE", filters={"GameID": id})
+        for category_id in form.categories.data:
+            execute_query(models.GameCategories, operation="INSERT", data={"GameID": id, "CategoryID": category_id})
+
+        # Get old PlatformIDs and new PlatformIDs
+        current_platforms = execute_query(models.GamePlatforms, operation="SELECT", filters={"GameID": id})
+        current_platform_ids = [platform.PlatformID for platform in current_platforms]
+        new_platform_ids = form.platforms.data
+
+        # Remove all removed IDs from respective tables
+        remove_platforms = set(current_platform_ids) - set(new_platform_ids)
+        for platform_id in remove_platforms:
+            execute_query(models.GamePlatforms, operation="DELETE", filters={"GameID": id, "PlatformID": platform_id})
+            execute_query(models.SystemRequirements, operation="DELETE", filters={"GameID": id, "PlatformID": platform_id})
+            execute_query(models.GamePlatformDetails, operation="DELETE", filters={"GameID": id, "PlatformID": platform_id})
+
+        # Update data based on PlaformID
+        for platform_id in form.platforms.data:
+            base_game_data = {"GameID": id, "PlatformID": platform_id}
+
+            # Insert new PlatformID if doesn't exist in old
+            if platform_id not in current_platform_ids:
+                execute_query(models.GamePlatforms, operation="INSERT", data=base_game_data)
+
+            # PC platform
+            if platform_id == 1:
+                # Check if minimum requirements exist
+                min_req_exist = execute_query(models.SystemRequirements, operation="SELECT", filters={
+                    "GameID": id, "PlatformID": platform_id, "Type": "Minimum"})
+                min_req_data = {"Type": "Minimum",
+                                "OS": form.min_pc_os.data or "N/A",
+                                "RAM": form.min_pc_ram.data or "N/A",
+                                "CPU": form.min_pc_cpu.data or "N/A",
+                                "GPU": form.min_pc_gpu.data or "N/A",
+                                "Storage": form.min_pc_storage.data or "N/A"
+                                }
+
+                # Update if minimum requirements exist, otherwise insert
+                if min_req_exist:
+                    execute_query(models.SystemRequirements, operation="UPDATE", id=min_req_exist[0].RequirementsID, data=min_req_data)
+                else:
+                    execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | min_req_data)
+
+                # Ditto for recommended requirement existence
+                rec_req_exist = execute_query(models.SystemRequirements, operation="SELECT", filters={
+                    "GameID": id, "PlatformID": platform_id, "Type": "Recommended"})
+                rec_req_data = {"Type": "Recommended",
+                                "OS": form.rec_pc_os.data or "N/A",
+                                "RAM": form.rec_pc_ram.data or "N/A",
+                                "CPU": form.rec_pc_cpu.data or "N/A",
+                                "GPU": form.rec_pc_gpu.data or "N/A",
+                                "Storage": form.rec_pc_storage.data or "N/A"
+                                }
+
+                # Ditto for data update/insert
+                if rec_req_exist:
+                    execute_query(models.SystemRequirements, operation="UPDATE", id=rec_req_exist[0].RequirementsID, data=rec_req_data)
+                else:
+                    execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | rec_req_data)
+            # Console platforms
+            else:
+                # Check if normal requirements exist
+                normal_req_exist = execute_query(models.SystemRequirements, operation="SELECT", filters={
+                    "GameID": id, "PlatformID": platform_id, "Type": "Normal"})
+                normal_req_data = {"Type": "Normal",
+                                   "OS": (form.ps_os.data if platform_id == 2 else form.xb_os.data) or "N/A",
+                                   "RAM": "N/A",
+                                   "CPU": "N/A",
+                                   "GPU": "N/A",
+                                   "Storage": (form.ps_storage.data if platform_id == 2 else form.xb_storage.data) or "N/A"
+                                   }
+
+                # Update if exist, otherwise insert
+                if normal_req_exist:
+                    execute_query(models.SystemRequirements, operation="UPDATE", id=normal_req_exist[0].RequirementsID, data=normal_req_data)
+                else:
+                    execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | normal_req_data)
+
+            # Check if price details exist
+            price_detail_exist = execute_query(models.GamePlatformDetails, operation="SELECT", filters={
+                "GameID": id, "PlatformID": platform_id})
+
+            # Get raw data using ternary operations for PlatformID
+            raw_price = (form.pc_price.data if platform_id == 1 else
+                         form.ps_price.data if platform_id == 2 else
+                         form.xb_price.data)
+            raw_release_date = (form.pc_release_date.data if platform_id == 1 else
+                                form.ps_release_date.data if platform_id == 2 else
+                                form.xb_release_date.data)
+
+            # Load into dictionary of proper data type
+            price_data = {
+                "Price": float(raw_price) if raw_price is not None else None,
+                "ReleaseDate": raw_release_date.isoformat() if raw_release_date else None
+            }
+
+            # Update if exist, otherwise insert
+            if price_detail_exist:
+                execute_query(models.GamePlatformDetails, operation="UPDATE", filters={"GameID": id, "PlatformID": platform_id}, data=price_data)
+            else:
+                execute_query(models.GamePlatformDetails, operation="INSERT", data=base_game_data | price_data)
+
+        # Redirect to game upon updating
+        flash(f"Game {form.game_name.data} updated successfully", "success")
+        return redirect(f"/game/{id}")
+    else:
+        print("Form errors:", form.errors)
+
+    return render_template("admin.html", form=form, form_action=f"/admin/game/update/{id}", form_type="UPDATE")
+
+
+@app.route("/admin/game/delete/<int:id>")
+def delete_game(id):
+    game = None
     if "AccountID" not in session:
         return redirect("/login")
 
@@ -526,137 +801,6 @@ def update_game(id):
             return redirect("/dashboard")
 
     game = execute_query(models.Games, operation="SELECT", id=id)
-    if not game:
-        abort(404, description="Game Not Found")
-    game = game[0]
-    form = AdminGameForm(obj=game)
-    form.submit.label.text = "Update Game"
-
-    all_categories = execute_query(models.Categories, operation="SELECT")
-    form.categories.choices = [(category.CategoryID, category.CategoryName) for category in all_categories]
-    all_platforms = execute_query(models.Platforms, operation="SELECT")
-    form.platforms.choices = [(platform.PlatformID, platform.PlatformName) for platform in all_platforms]
-
-    if request.method == "GET":
-        game = execute_query(models.Games, operation="SELECT", id=id)[0]
-        form.game_name.data = game.GameName
-        form.game_description.data = game.GameDescription
-        form.game_developer.data = game.GameDeveloper
-
-        categories = []
-        chosen_categories = execute_query(models.GameCategories, operation="SELECT", filters={"GameID": id})
-        for category in chosen_categories:
-            categories.append(category.CategoryID)
-        form.categories.data = categories
-
-        platforms = []
-        chosen_platforms = execute_query(models.GamePlatforms, operation="SELECT", filters={"GameID": id})
-        for platform in chosen_platforms:
-            platforms.append(platform.PlatformID)
-        form.platforms.data = platforms
-
-        for platform_id in platforms:
-            system_requirement = execute_query(models.SystemRequirements, operation="SELECT", filters={"GameID": id, "PlatformID": platform_id})
-            if system_requirement:
-                system_requirement = system_requirement[0]
-            price_detail = execute_query(models.GamePlatformDetails, operation="SELECT", filters={"GameID": id, "PlatformID": platform_id})
-            if price_detail:
-                price_detail = price_detail[0]
-
-            if platform_id == 1:
-                form.pc_type.data = system_requirement.Type if system_requirement else None
-                form.pc_os.data = system_requirement.OS if system_requirement else None
-                form.pc_ram.data = system_requirement.RAM if system_requirement else None
-                form.pc_cpu.data = system_requirement.CPU if system_requirement else None
-                form.pc_gpu.data = system_requirement.GPU if system_requirement else None
-                form.pc_storage.data = system_requirement.Storage if system_requirement else None
-                form.pc_price.data = float(price_detail.Price) if price_detail and price_detail is not None else None
-                form.pc_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
-            elif platform_id == 2:
-                form.ps_os.data = system_requirement.OS if system_requirement else None
-                form.ps_storage.data = system_requirement.Storage if system_requirement else None
-                form.ps_price.data = float(price_detail.Price) if price_detail and price_detail.Price is not None else None
-                form.ps_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
-            elif platform_id == 3:
-                form.xb_os.data = system_requirement.OS if system_requirement else None
-                form.xb_storage.data = system_requirement.Storage if system_requirement else None
-                form.xb_price.data = float(price_detail.Price) if price_detail and price_detail.Price is not None else None
-                form.xb_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
-
-    if form.validate_on_submit():
-        execute_query(models.Games, operation="UPDATE", id=id, data={
-            "GameName": form.game_name.data,
-            "GameDescription": form.game_description.data,
-            "GameDeveloper": form.game_developer.data
-        })
-
-        execute_query(models.GameCategories, operation="DELETE", filters={"GameID": id})
-        for category_id in form.categories.data:
-            execute_query(models.GameCategories, operation="INSERT", data={"GameID": id, "CategoryID": category_id})
-
-        execute_query(models.GamePlatforms, operation="DELETE", filters={"GameID": id})
-        execute_query(models.SystemRequirements, operation="DELETE", filters={"GameID": id})
-        execute_query(models.GamePlatformDetails, operation="DELETE", filters={"GameID": id})
-        for platform_id in form.platforms.data:
-            base_game_data = {"GameID": id, "PlatformID": platform_id}
-            execute_query(models.GamePlatforms, operation="INSERT", data=base_game_data)
-            if platform_id == 1:
-                pc_price = float(form.pc_price.data) if form.pc_price.data is not None else None
-                system_data = {"Type": form.pc_type.data or "Minimum",
-                               "OS": form.pc_os.data or "N/A",
-                               "RAM": form.pc_ram.data or "N/A",
-                               "CPU": form.pc_cpu.data or "N/A",
-                               "GPU": form.pc_gpu.data or "N/A",
-                               "Storage": form.pc_storage.data or "N/A"
-                               }
-                price_data = {"Price": pc_price, "ReleaseDate": form.pc_release_date.data.isoformat() if form.pc_release_date.data else None}
-            elif platform_id == 2:
-                ps_price = float(form.ps_price.data) if form.ps_price.data is not None else None
-                system_data = {"Type": "Normal",
-                               "OS": form.ps_os.data or "N/A",
-                               "RAM": "N/A",
-                               "CPU": "N/A",
-                               "GPU": "N/A",
-                               "Storage": form.ps_storage.data or "N/A"
-                               }
-                price_data = {"Price": ps_price, "ReleaseDate": form.ps_release_date.data.isoformat() if form.ps_release_date.data else None}
-            elif platform_id == 3:
-                xb_price = float(form.xb_price.data) if form.xb_price.data is not None else None
-                system_data = {"Type": "Normal",
-                               "OS": form.xb_os.data or "N/A",
-                               "RAM": "N/A",
-                               "CPU": "N/A",
-                               "GPU": "N/A",
-                               "Storage": form.xb_storage.data or "N/A"
-                               }
-                price_data = {"Price": xb_price, "ReleaseDate": form.xb_release_date.data.isoformat() if form.xb_release_date.data else None}
-
-            execute_query(models.SystemRequirements, operation="INSERT", data=base_game_data | system_data)
-            execute_query(models.GamePlatformDetails, operation="INSERT", data=base_game_data | price_data)
-
-        flash(f"Game {form.game_name.data} updated successfully")
-        return redirect(f"/game/{id}")
-    else:
-        print("Form errors:", form.errors)
-
-    return render_template("admin.html", form=form, form_action=f"/admin/game/update/{id}")
-
-
-@app.route("/admin/game/delete/<int:id>")
-def delete_game(id):
-    game = None
-    if "AccountID" not in session:
-        return redirect("/login")
-
-    user = execute_query(models.Accounts, operation="SELECT", filters={"AccountID": session["AccountID"]})
-    if not user:
-        return redirect("/dashboard")
-    elif user:
-        user = user[0]
-        if not user.AccountIsAdmin:
-            return redirect("/dashboard")
-
-    game = execute_query(models.Games, operation="SELECT", id=id)
     execute_query(models.Games, operation="DELETE", id=game.GameID)
-    flash("Game Deleted")
-    return redirect("/admin")
+    flash("Game Deleted", "success")
+    return redirect("/game/0")
