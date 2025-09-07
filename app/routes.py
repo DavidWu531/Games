@@ -255,14 +255,14 @@ def register():
 def logout():
     if "AccountID" in session:
         session.pop("AccountID", None)
-    return redirect('/')
+    return redirect('/game/0')
 
 
 @app.route('/delete')
 def delete():
     user_id = session.get("AccountID")
     if user_id is None:
-        return redirect('/')
+        return redirect('/game/0')
 
     try:
         execute_query(models.Accounts, operation="DELETE", id=user_id)
@@ -270,7 +270,7 @@ def delete():
         print("An error occurred, please try again later")
     else:
         session.pop("AccountID", None)
-    return redirect('/')
+    return redirect('/game/0')
 
 
 @app.route('/dashboard')

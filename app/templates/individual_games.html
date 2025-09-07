@@ -11,6 +11,10 @@
 {% endwith %}
 <div class="individual_grid_container">
     {% for game in games %}
+
+    <head>
+        <title>{{ game.GameName }}</title>
+    </head>
     <!-- Admin Only -->
     <div class="individual_grid_item">
         {% if is_admin %}
@@ -33,19 +37,20 @@
         <div class="game_rating">
             <form method="POST" action="/rate_game/{{ game.GameID }}">
                 <div class="stars_counter">
-                    {% for star in range(1, 6) %}
                     <span class="star_wrapper">
+                        {% for star in range(5, 0, -1) %}
                         <input type="radio" name="rating" value="{{ star }}" id="star{{ star }}" {% if user_rating==star
                             %}checked{% endif %} onchange="this.form.submit();">
-                        <label for="star{{ star }}">&#9733;</label>
+                        <label for="star{{ star }}" class="star">&#9733;</label>
+                        {% endfor %}
                     </span>
-                    {% endfor %}
-
+                </div>
+                <div class="stars_counter">
                     <!-- Clear Rating -->
-                    <span class="clear_wrapping">
+                    <span class="clear_wrapper">
                         <input type="radio" name="rating" value="0" id="star0" {% if not user_rating %}checked{% endif
                             %} onchange="this.form.submit();">
-                        <label for="star0">Clear</label>
+                        <label for="star0" class="star_clear">Clear</label>
                     </span>
                 </div>
             </form>
@@ -68,16 +73,15 @@
                 </select>
             </form>
         </div>
-
         <!--Platform Details-->
+        {{ game.GameDescription }}
         {% if platform_detail %}
         <ul>
             {% for data in platform_detail %}
             {% if chosen_platform %}
             <p>
-                Price: ${{ "%.2f"|format(data.Price) }}<br>
-                Release Date: {{ data.ReleaseDate }}<br>
-                {{ game.GameDescription }}
+                Price: ${{ ("%.2f"|format(data.Price)) if data.Price is not none else "N/A" }}<br>
+                Release Date: {{ data.ReleaseDate if data.ReleaseDate else "TBA" }}<br>
             </p>
             {% endif %}
             {% endfor %}

@@ -57,6 +57,7 @@ class Platforms(db.Model):
     PlatformID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     PlatformName = db.Column(db.String(100), nullable=False)
     PlatformDescription = db.Column(db.String(255))
+    PlatformImage = db.Column(db.String(255))
 
     games = db.relationship("Games", secondary="GamePlatforms", back_populates="platforms")
     game_platform_details = db.relationship("GamePlatformDetails", back_populates="platforms", cascade="all, delete-orphan")

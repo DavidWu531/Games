@@ -2,15 +2,18 @@
 
 {% block content %}
 {% if platform %}
-<h3>{{ platform.PlatformName }}</h3>
-<p>{{ platform.PlatformDescription }}</p>
+<head>
+    <title>{{ platform.PlatformName }}</title>
+</head>
+<h3 style="color: white;">{{ platform.PlatformName }}</h3>
+<p style="color: white;">{{ platform.PlatformDescription }}</p>
 {% if platform.games %}
 <div class="all_grid_container">
     {% for game in platform.games %}
     <a href="/game/{{ game.GameID }}" class="grid_link">
         <div class="all_grid_item">
             {{ game.GameName }}<br>
-            <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
+            <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="100px" width="100px"><br>
         </div>
     </a>
     {% endfor %}

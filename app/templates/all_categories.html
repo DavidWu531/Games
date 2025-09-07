@@ -1,21 +1,25 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h2>Categories</h2>
-    {% if categories %}
-        <ul>
-        <div class="all_grid_container">
+
+<head>
+    <title>Categories</title>
+</head>
+<h2 style="color: white;">Categories</h2>
+{% if categories %}
+<ul>
+    <div class="all_grid_container">
         {% for category in categories %}
-            <a href="/category/{{ category.CategoryID }}" class="grid_link">
-                <div class="all_grid_item">
-                    {{ category.CategoryName }}<br>
-                    <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
-                </div>
-            </a>
+        <a href="/category/{{ category.CategoryID }}" class="grid_link">
+            <div class="all_grid_item">
+                {{ category.CategoryName }}<br>
+                <img src="{{ url_for('static', filename='images/icon.png') }}" width="75px" height="75px">
+            </div>
+        </a>
         {% endfor %}
-        </div>
-        </ul>
-    {% else %}
-        <p>No categories found.</p>
-    {% endif %}
+    </div>
+</ul>
+{% else %}
+<p>No categories found.</p>
+{% endif %}
 {% endblock %}

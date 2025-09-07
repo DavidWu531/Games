@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <meta charset="UTF-8">
@@ -8,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Play&display=swap" rel="stylesheet">
-    <title>Games</title>
 </head>
-<body>
+
+<body style="background-image: url('{{ url_for('static', filename='images/bg.jpg') }}'); background-size: cover;">
     <header>
         <nav>
             <ul>
@@ -34,17 +35,18 @@
     </header>
     <main>
         {% block content %}
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    {% for message in messages %}
-                        <li>{{ message }}</li>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
         {% endblock %}
     </main>
     <footer>
         <p>This is the footer</p>
     </footer>
 </body>
+
 </html>

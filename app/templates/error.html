@@ -2,7 +2,17 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+
+<head>
     <title>{{ title }}</title>
-    <h2>Error {{ code }}!<br>{{ message }}</h2>
-    <a href="/">Return Home</a>
+</head>
+
+<body>
+    <div class="center">
+        <h2 style="color: white; text-align: center; font-size: 40px;">Error {{ code }}<br>{{ message }}</h2>
+        <button>
+            <a href="/game/0">Return to Games</a>
+        </button>
+    </div>
+</body>
 {% endblock %}

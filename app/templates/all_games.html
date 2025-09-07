@@ -1,21 +1,26 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h2>Games</h2>
-    {% if games %}
-        <ul>
-        <div class="all_grid_container">
-            {% for game in games %}
-            <a href="/game/{{ game.GameID }}" class="grid_link">
-                <div class="all_grid_item">
-                    {{ game.GameName }}<br>
-                    <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="30px" width="30px">
-                </div>
-            </a>
-            {% endfor %}
-        </div>
-        </ul>
-    {% else %}
-        <p>No games found.</p>
-    {% endif %}
+
+<head>
+    <title>Games</title>
+</head>
+<h2 style="color: white;">Games</h2>
+{% if games %}
+<ul>
+    <div class="all_grid_container">
+        {% for game in games %}
+        <a href="/game/{{ game.GameID }}" class="grid_link">
+            <div class="all_grid_item">
+                {{ game.GameName }}<br>
+                <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="75px"
+                    width="75px">
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</ul>
+{% else %}
+<p>No games found.</p>
+{% endif %}
 {% endblock %}

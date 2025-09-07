@@ -8,7 +8,10 @@
 {% endfor %}
 {% endif %}
 {% endwith %}
-<h1 style="text-align: center;">{{ "Add Game" if form_type=="INSERT" else "Update Game"}}</h1><br><br>
+<head>
+    <title>{{ "Add Game " if form_type=="INSERT" else "Update Game"}}</title>
+</head>
+<h1 style="text-align: center; color: white;">{{ "Add Game" if form_type=="INSERT" else "Update Game"}}</h1><br><br>
 <div class="admin_game_container">
     <div class="admin_game_border">
         <form action="{{ form_action }}" method="POST" enctype="multipart/form-data">
@@ -41,7 +44,7 @@
             <div id="pc_requirements" style="display: none;">
                 <h2>PC Details</h2><br>
                 <div id="min_pc_req"><br>
-                    <h3>Minimum System Requirements</h3>
+                    <h3>Minimum System Requirements</h3><br>
                     <h3>{{ form.min_pc_os.label }}:</h3> {{ form.min_pc_os }}<br>
                     <h3>{{ form.min_pc_ram.label }}:</h3> {{ form.min_pc_ram }}<br>
                     <h3>{{ form.min_pc_cpu.label }}:</h3> {{ form.min_pc_cpu }}<br>
@@ -49,7 +52,7 @@
                     <h3>{{ form.min_pc_storage.label }}:</h3> {{ form.min_pc_storage }}<br>
                 </div><br>
                 <div id="rec_pc_req"><br>
-                    <h3>Recommended System Requirements</h3>
+                    <h3>Recommended System Requirements</h3><br>
                     <h3>{{ form.rec_pc_os.label }}:</h3> {{ form.rec_pc_os }}<br>
                     <h3>{{ form.rec_pc_ram.label }}:</h3> {{ form.rec_pc_ram }}<br>
                     <h3>{{ form.rec_pc_cpu.label }}:</h3> {{ form.rec_pc_cpu }}<br>

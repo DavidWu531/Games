@@ -1,21 +1,26 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-    <h2>Platforms</h2>
-    {% if platforms %}
-        <ul>
-        <div class="all_grid_container">
+
+<head>
+    <title>Platforms</title>
+</head>
+<h2 style="color: white;">Platforms</h2>
+{% if platforms %}
+<ul>
+    <div class="all_grid_container">
         {% for platform in platforms %}
-            <a href="/platform/{{ platform.PlatformID }}" class="grid_link">
-                <div class="all_grid_item">
-                    {{ platform.PlatformName }}<br>
-                    <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
-                </div>
-            </a>
+        <a href="/platform/{{ platform.PlatformID }}" class="grid_link">
+            <div class="all_grid_item">
+                {{ platform.PlatformName }}<br>
+                <img src="{{ url_for('static', filename='images/' ~ (platform.PlatformImage or 'icon.png')) }}"
+                    height="200px" width="200px"><br>
+            </div>
+        </a>
         {% endfor %}
-        </div>
-        </ul>
-    {% else %}
-        <p>No platforms found.</p>
-    {% endif %}
+    </div>
+</ul>
+{% else %}
+<p>No platforms found.</p>
+{% endif %}
 {% endblock %}

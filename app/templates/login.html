@@ -1,31 +1,38 @@
 {% extends 'layout.html' %}
 
 {% block content %}
-<div class="account_container">
-    <div class="account_border">
-        <p>Login</p>
-        {% with messages = get_flashed_messages(with_categories=true) %}
+
+<head>
+    <title>Login</title>
+</head>
+
+<body>
+    <div class="account_container">
+        <div class="account_border">
+            <p>Login</p>
+            {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                {% for category, message in messages %}
-                    <li class="{{ category }}"><strong>{{ message }}</strong></li>
-                {% endfor %}
+            {% for category, message in messages %}
+            <li class="{{ category }}"><strong>{{ message }}</strong></li>
+            {% endfor %}
             {% endif %}
-        {% endwith %}
-        <form action="/login" method="POST">
-            {% if form.errors %}
+            {% endwith %}
+            <form action="/login" method="POST">
+                {% if form.errors %}
                 <p>Please fix the following errors:</p>
                 {% for field_name, error_list in form.errors.items() %}
-                    {% for error in error_list %}
-                        <p class="error"><strong>{{ error }}</strong></p>
-                    {% endfor %}
+                {% for error in error_list %}
+                <p class="error"><strong>{{ error }}</strong></p>
                 {% endfor %}
-            {% endif %}
-            {{ form.hidden_tag() }}
-            {{ form.username }}<br><br>
-            {{ form.password }}<br><br>
-            {{ form.submit }}
-        </form>
-        <p>Don't have an account? <a href="/register">Register an account</a></p>
+                {% endfor %}
+                {% endif %}
+                {{ form.hidden_tag() }}
+                {{ form.username }}<br><br>
+                {{ form.password }}<br><br>
+                {{ form.submit }}
+            </form>
+            <p>Don't have an account? <a href="/register">Register an account</a></p>
+        </div>
     </div>
-</div>
+</body>
 {% endblock %}

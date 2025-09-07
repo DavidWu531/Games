@@ -2,25 +2,33 @@
 
 {% block content %}
 {% if category %}
-<h3>{{ category.CategoryName }}</h3>
-<p>{{ category.CategoryDescription }}</p>
-{% if category.games %}
-<div class="all_grid_container">
-    {% for game in category.games %}
-    <a href="/game/{{ game.GameID }}" class="grid_link">
-        <div class="all_grid_item">
-            {{ game.GameName }}<br>
-            <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
-        </div>
-    </a>
-    {% endfor %}
-</div>
-{% else %}
-<p>No games listed</p>
-{% endif %}
-<br>
-</ul>
-{% else %}
-<p>No categories found.</p>
+
+<head>
+    <title>{{ category.CategoryName }}</title>
+</head>
+
+<body>
+    <h3 style="color: white;">{{ category.CategoryName }}</h3>
+    <p style="color: white;">{{ category.CategoryDescription }}</p>
+    {% if category.games %}
+    <div class="all_grid_container">
+        {% for game in category.games %}
+        <a href="/game/{{ game.GameID }}" class="grid_link">
+            <div class="all_grid_item">
+                {{ game.GameName }}<br>
+                <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="100px"
+                    width="100px"><br>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>No games listed</p>
+    {% endif %}
+    <br>
+    </ul>
+    {% else %}
+    <p>No categories found.</p>
+</body>
 {% endif %}
 {% endblock %}

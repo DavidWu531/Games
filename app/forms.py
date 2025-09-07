@@ -2,11 +2,13 @@ from flask_wtf import FlaskForm
 from wtforms import DateField, DecimalField, FileField, StringField, PasswordField, SubmitField, \
     ValidationError, TextAreaField, SelectMultipleField, widgets
 from wtforms.validators import DataRequired, Length, Optional
-from flask_wtf.file import FileAllowed
 
 
 import app.routes as routes
 import app.models as models
+
+ALLOWED_EXTENSIONS = ["jpg", "png", "jpeg", "webp"]
+MAX_IMAGE_SIZE = 5 * 1024 * 1024
 
 
 def at_least_one_checked(form, field):
@@ -37,6 +39,21 @@ def unit_validation(form, field):
                 letter_found = True
             elif character.isdigit() and letter_found:
                 raise ValidationError("Invalid Format: Numbers found after letters")
+
+
+def validate_image(form, field):
+    file = field.data
+    if not file:
+        return
+    filename = file.filename.lower()
+    if "." not in filename or filename.rsplit(".", 1)[1] not in ALLOWED_EXTENSIONS:
+        raise ValidationError("Invalid file types: Only Accept jpg, png, and webp")
+
+    file.seek(0, 2)
+    size = file.tell()
+    file.seek(0)
+    if size > MAX_IMAGE_SIZE:
+        raise ValidationError("File too large: Max 5MB")
 
 
 class MultiCheckboxField(SelectMultipleField):
@@ -90,7 +107,7 @@ class AdminGameForm(FlaskForm):
     game_name = StringField("Game Name", validators=[DataRequired()])
     game_description = TextAreaField("Description", validators=[Optional()], render_kw={"cols": 50, "rows": 10, "class": "uneditable"})
     game_developer = StringField("Developer", validators=[Optional()])
-    game_image = FileField("Game Image", validators=[FileAllowed(['jpg', 'jpeg', 'png'], "Images Only")])
+    game_image = FileField("Game Image", validators=[validate_image])
 
     categories = MultiCheckboxField("Categories", coerce=int, validators=[at_least_one_checked])
     platforms = MultiCheckboxField("Platforms", coerce=int, validators=[at_least_one_checked])

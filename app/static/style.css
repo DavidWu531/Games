@@ -132,8 +132,49 @@ input {
     position: relative;
 }
 
-input[type="radio"] {
-    opacity: 0;
+.star_wrapper {
+    display: flex;
+    justify-content: center;
+    flex-direction: row-reverse;
+}
+
+.star_wrapper label {
+    position: relative;
+    cursor: pointer;
+    color: #000;
+    transition: color 0.2s;
+}
+
+.star_wrapper > label:hover,
+.star_wrapper > label:hover ~ label {
+    color: gold;
+}
+
+.star_wrapper > input:checked ~ label {
+    color: gold;
+}
+
+.star_wrapper input {
+    display: none;
+}
+
+.clear_wrapper input {
+    display: none;
+}
+
+.clear_wrapper label {
+    position: relative;
+    cursor: pointer;
+}
+
+.clear_wrapper .star_clear {
+    position: relative;
+    width: 100px;
+    height: 40px;
+    text-align: center;
+    border: 2px solid #000;
+    background-color: red;
+    color: white;
 }
 
 .logout_button {
@@ -157,18 +198,6 @@ input[type="radio"] {
     display: inline-block; 
 }
 
-.stars_container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: wrap;
-}
-
-.star_wrapper {
-    display: inline-block;
-}
-
 .clear_wrapper {
     margin-left: 15px
 }
@@ -189,7 +218,7 @@ tr:nth-child(even) {
 
 .individual_grid_container {
     display: grid;
-    gap: 20px;
+    gap: 70px;
     grid-template-columns: 400px auto;
     padding: 10px;
     justify-content: center;
@@ -205,18 +234,23 @@ tr:nth-child(even) {
 }
 
 .system_requirement {
+    display: flex;
+    justify-content: center;
+}
+
+.system_requirement table,
+.system_requirement {
+    display: flex;
     background-color: rgba(255, 255, 255, 0.8);
     border: 1px solid rgba(0, 0, 0, 0.8);
     padding: 20px;
     font-size: 30px;
     justify-content: center;
-    text-align: center;
-    grid-column: 1 / -1;
 }
 
 .uneditable {
-    width: 300px;
-    height: 150px;
+    width: 500px;
+    height: 100px;
     resize: none;
 }
 
@@ -228,4 +262,11 @@ tr:nth-child(even) {
 .success {
     color: green;
     font-size: 30px
+}
+
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
