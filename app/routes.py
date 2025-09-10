@@ -540,8 +540,8 @@ def add_game():
 
             # Load into dictionary of proper data type
             price_data = {
-                "Price": float(raw_price) if raw_price is not None else None,
-                "ReleaseDate": raw_release_date.isoformat() if raw_release_date else None
+                "Price": float(raw_price) if raw_price not in [None, ""] else -1,
+                "ReleaseDate": raw_release_date.isoformat() if raw_release_date else "1900-01-01"
             }
             execute_query(models.GamePlatformDetails, operation="INSERT", data=base_game_data | price_data)
 
@@ -620,18 +620,18 @@ def update_game(id):
 
                 # Load system requirements based on type of requirement
                 if min_req:
-                    form.min_pc_os.data = min_req.OS
-                    form.min_pc_ram.data = min_req.RAM
-                    form.min_pc_cpu.data = min_req.CPU
-                    form.min_pc_gpu.data = min_req.GPU
-                    form.min_pc_storage.data = min_req.Storage
+                    form.min_pc_os.data = min_req.OS if min_req.OS != "N/A" else None
+                    form.min_pc_ram.data = min_req.RAM if min_req.RAM != "N/A" else None
+                    form.min_pc_cpu.data = min_req.CPU if min_req.CPU != "N/A" else None
+                    form.min_pc_gpu.data = min_req.GPU if min_req.GPU != "N/A" else None
+                    form.min_pc_storage.data = min_req.Storage if min_req.Storage != "N/A" else None
 
                 if rec_req:
-                    form.rec_pc_os.data = rec_req.OS
-                    form.rec_pc_ram.data = rec_req.RAM
-                    form.rec_pc_cpu.data = rec_req.CPU
-                    form.rec_pc_gpu.data = rec_req.GPU
-                    form.rec_pc_storage.data = rec_req.Storage
+                    form.rec_pc_os.data = rec_req.OS if rec_req.OS != "N/A" else None
+                    form.rec_pc_ram.data = rec_req.RAM if rec_req.RAM != "N/A" else None
+                    form.rec_pc_cpu.data = rec_req.CPU if rec_req.CPU != "N/A" else None
+                    form.rec_pc_gpu.data = rec_req.GPU if rec_req.GPU != "N/A" else None
+                    form.rec_pc_storage.data = rec_req.Storage if rec_req.Storage != "N/A" else None
 
                 # Load existing price details (GamePlatformDetails)
                 form.pc_price.data = float(price_detail.Price) if price_detail and price_detail is not None else None
@@ -640,8 +640,8 @@ def update_game(id):
                 # Ditto for PS
                 normal_requirement = next((requirement for requirement in system_requirement if requirement.Type == "Normal"), None)
                 if normal_requirement:
-                    form.ps_os.data = normal_requirement.OS
-                    form.ps_storage.data = normal_requirement.Storage
+                    form.ps_os.data = normal_requirement.OS if normal_requirement.OS != "N/A" else None
+                    form.ps_storage.data = normal_requirement.Storage if normal_requirement.Storage != "N/A" else None
 
                 form.ps_price.data = float(price_detail.Price) if price_detail and price_detail.Price is not None else None
                 form.ps_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
@@ -649,8 +649,8 @@ def update_game(id):
                 # Ditto for XB
                 normal_requirement = next((requirement for requirement in system_requirement if requirement.Type == "Normal"), None)
                 if normal_requirement:
-                    form.xb_os.data = normal_requirement.OS
-                    form.xb_storage.data = normal_requirement.Storage
+                    form.xb_os.data = normal_requirement.OS if normal_requirement.OS != "N/A" else None
+                    form.xb_storage.data = normal_requirement.Storage if normal_requirement.Storage != "N/A" else None
 
                 form.xb_price.data = float(price_detail.Price) if price_detail and price_detail.Price is not None else None
                 form.xb_release_date.data = datetime.strptime(price_detail.ReleaseDate, "%Y-%m-%d").date() if price_detail and price_detail.ReleaseDate else None
@@ -764,8 +764,8 @@ def update_game(id):
 
             # Load into dictionary of proper data type
             price_data = {
-                "Price": float(raw_price) if raw_price is not None else None,
-                "ReleaseDate": raw_release_date.isoformat() if raw_release_date else None
+                "Price": float(raw_price) if raw_price not in [None, ""] else -1,
+                "ReleaseDate": raw_release_date.isoformat() if raw_release_date else "1900-01-01"
             }
 
             # Update if exist, otherwise insert

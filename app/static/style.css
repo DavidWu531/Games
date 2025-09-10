@@ -12,8 +12,10 @@ html, body {
     flex-direction: column;
 }
 
-body {
-    background-color: lightblue;
+body#bg_image {
+    background-image: url("images/bg.jpg"); 
+    background-size: cover;
+    background-attachment: fixed;
 }
 
 main {
@@ -89,6 +91,7 @@ footer {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
 .account_border {
@@ -177,14 +180,13 @@ input {
     color: white;
 }
 
-.logout_button {
-    background-color: red;
-    color: white;
-    padding: 14px 25px;
-    display: inline-block;
+.clear_wrapper .star_clear:hover {
+    border: 2px solid #000;
+    background-color: #ff1111;
 }
 
-.delete_button {
+
+.logout_button, .delete_button {
     background-color: red;
     color: white;
     padding: 14px 25px;
@@ -192,7 +194,7 @@ input {
 }
 
 .add_game_button {
-    background-color: red;
+    background-color: green;
     color: white;
     padding: 14px 25px;
     display: inline-block; 
@@ -218,11 +220,40 @@ tr:nth-child(even) {
 
 .individual_grid_container {
     display: grid;
-    gap: 70px;
-    grid-template-columns: 400px auto;
-    padding: 10px;
-    justify-content: center;
-    align-items: start;
+    gap: 30px;
+    grid-template-areas: 
+    "top-row"
+    "dropdown"
+    "bottom-row";
+    grid-template-rows: auto auto auto;
+    padding: 20px;
+    /* justify-content: start;
+    align-items: start; */
+}
+
+.top-row {
+    display: grid;
+    grid-template-columns: 400px 1fr;
+    grid-template-areas: "top-left top-right";
+    gap: 50px;
+}
+
+.dropdown {
+    grid-area: dropdown;
+    text-align: center;
+    font-size: 24px;
+    background-color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    justify-self: center;
+    width: max-content;
+}
+
+.bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 450px;
+    grid-template-areas: "bottom-left bottom-right";
+    gap: 50px;
 }
 
 .individual_grid_item {
@@ -233,21 +264,6 @@ tr:nth-child(even) {
     text-align: center;
 }
 
-.system_requirement {
-    display: flex;
-    justify-content: center;
-}
-
-.system_requirement table,
-.system_requirement {
-    display: flex;
-    background-color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(0, 0, 0, 0.8);
-    padding: 20px;
-    font-size: 30px;
-    justify-content: center;
-}
-
 .uneditable {
     width: 500px;
     height: 100px;
@@ -256,11 +272,15 @@ tr:nth-child(even) {
 
 .error {
     color: red;
+    outline: #000;
+    outline-width: 10px;
     font-size: 30px
 }
 
 .success {
-    color: green;
+    color: lightgreen;
+    outline: #000;
+    outline-width: 10px;
     font-size: 30px
 }
 
@@ -269,4 +289,78 @@ tr:nth-child(even) {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+.navigation {
+    background-color: #4681f4;
+    width: 250px;
+    height: 50px;
+    cursor: pointer;
+}
+
+.navigation p {
+    color: white;
+    text-shadow:
+        2px 2px 0 black,
+        -2px 2px 0 black,
+        2px -2px 0 black,
+        -2px -2px 0 black;
+    font-size: 24px
+}
+
+select#platforms {
+    background-color: #1a2a6c;
+    color: white;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.go_back {
+    background-color: #e0e0e0;
+    width: 250px;
+    height: 50px;
+    cursor: pointer;
+    font-size: 24px
+}
+
+.go_back_link {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%)
+}
+
+.heading {
+    color: white;
+    text-shadow:
+        2px 2px 0 black,
+        -2px 2px 0 black,
+        2px -2px 0 black,
+        -2px -2px 0 black;
+}
+
+.home_message {
+    color: white;
+    text-shadow:
+        2px 2px 0 black,
+        -2px 2px 0 black,
+        2px -2px 0 black,
+        -2px -2px 0 black;
+    font-size: 40px;
+    text-align: center;
+}
+
+.requirement_form {
+    display: none;
+}
+
+.category_grid {
+    display: grid;
+    grid-template-columns: repeat(8, 120px);
+    gap: 10px;
+}
+
+.platform_grid {
+    display: grid;
+    grid-template-columns: repeat(6, 170px);
+    gap: 10px;
 }

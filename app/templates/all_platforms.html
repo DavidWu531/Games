@@ -5,7 +5,7 @@
 <head>
     <title>Platforms</title>
 </head>
-<h2 style="color: white;">Platforms</h2>
+<h2 class="heading">Platforms</h2>
 {% if platforms %}
 <ul>
     <div class="all_grid_container">
@@ -14,7 +14,7 @@
             <div class="all_grid_item">
                 {{ platform.PlatformName }}<br>
                 <img src="{{ url_for('static', filename='images/' ~ (platform.PlatformImage or 'icon.png')) }}"
-                    height="200px" width="200px"><br>
+                    height="300px" width="300px"><br>
             </div>
         </a>
         {% endfor %}

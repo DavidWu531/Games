@@ -44,6 +44,7 @@ class Categories(db.Model):
     CategoryID = db.Column(db.Integer, primary_key=True, autoincrement=True)
     CategoryName = db.Column(db.String(100), nullable=False)
     CategoryDescription = db.Column(db.Text)
+    CategoryImage = db.Column(db.String(255))
 
     games = db.relationship("Games", secondary="GameCategories", back_populates="categories")
 

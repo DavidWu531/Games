@@ -2,15 +2,21 @@
 {% extends 'layout.html' %}
 
 {% block content %}
+
 <head>
     <title>Home</title>
 </head>
-<div class="center">
-    <h2 style="color: white;">
-        This page is deprecated, please return to Games page
-    </h2>
-    <button>
-        <a href="/game/0">Go Back</a>
-    </button>
-</div>
+
+<body>
+    <div class="center">
+        <h2 class="home_message">
+            This page is deprecated, please return to Games page
+        </h2>
+        <a href="/game/0" class="go_back_link">
+            <button class="go_back">
+                <p>Go Back</p>
+            </button>
+        </a>
+    </div>
+</body>
 {% endblock %}

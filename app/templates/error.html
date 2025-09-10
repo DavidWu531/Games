@@ -9,10 +9,13 @@
 
 <body>
     <div class="center">
-        <h2 style="color: white; text-align: center; font-size: 40px;">Error {{ code }}<br>{{ message }}</h2>
-        <button>
-            <a href="/game/0">Return to Games</a>
-        </button>
+        <h2 class="home_message">
+            Error {{ code }}<br>{{ message }}</h2>
+        <a href="/game/0" class="go_back_link">
+            <button class="go_back">
+                <p>Go Back</p>
+            </button>
+        </a>
     </div>
 </body>
 {% endblock %}

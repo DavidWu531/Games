@@ -8,16 +8,16 @@
 </head>
 
 <body>
-    <h3 style="color: white;">{{ category.CategoryName }}</h3>
-    <p style="color: white;">{{ category.CategoryDescription }}</p>
+    <h3 class="heading">{{ category.CategoryName }}</h3>
+    <p class="heading">{{ category.CategoryDescription }}</p>
     {% if category.games %}
     <div class="all_grid_container">
         {% for game in category.games %}
         <a href="/game/{{ game.GameID }}" class="grid_link">
             <div class="all_grid_item">
                 {{ game.GameName }}<br>
-                <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="100px"
-                    width="100px"><br>
+                <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="300px"
+                    width="300px"><br>
             </div>
         </a>
         {% endfor %}

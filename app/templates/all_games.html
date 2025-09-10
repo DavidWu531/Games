@@ -5,7 +5,7 @@
 <head>
     <title>Games</title>
 </head>
-<h2 style="color: white;">Games</h2>
+<h2 class="heading">Games</h2>
 {% if games %}
 <ul>
     <div class="all_grid_container">
@@ -13,8 +13,8 @@
         <a href="/game/{{ game.GameID }}" class="grid_link">
             <div class="all_grid_item">
                 {{ game.GameName }}<br>
-                <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="75px"
-                    width="75px">
+                <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}"
+                height="300px" width="300px">
             </div>
         </a>
         {% endfor %}

@@ -29,19 +29,19 @@
             <h3>{{ form.game_developer.label }}:</h3> {{ form.game_developer }}<br>
             <h3>{{ form.game_image.label }}:</h3> {{ form.game_image() }}<br>
             <h3>{{ form.categories.label }}:</h3>
-            <div style="display: grid; grid-template-columns: repeat(6, 150px); gap: 8px;">
+            <div class="category_grid">
                 {% for subfield in form.categories %}
                 <label>{{ subfield() }} {{ subfield.label.text }}</label><br>
                 {% endfor %}
             </div><br>
             <h3>{{ form.platforms.label }}:</h3>
-            <div style="display: grid; grid-template-columns: repeat(6, 150px); gap: 8px">
+            <div class="platform_grid">
                 {% for subfield in form.platforms %}
                 <label>{{ subfield(class="platform-checkbox", onchange="toggle_div()") }} {{ subfield.label.text
                     }}</label><br>
                 {% endfor %}
             </div><br>
-            <div id="pc_requirements" style="display: none;">
+            <div id="pc_requirements" class="requirement_form">
                 <h2>PC Details</h2><br>
                 <div id="min_pc_req"><br>
                     <h3>Minimum System Requirements</h3><br>
@@ -62,14 +62,14 @@
                 <h3>{{ form.pc_price.label }}:</h3> {{ form.pc_price }}<br>
                 <h3>{{ form.pc_release_date.label }}:</h3> {{ form.pc_release_date }}<br>
             </div>
-            <div id="ps_requirements" style="display: none;">
+            <div id="ps_requirements" class="requirement_form">
                 <h2>PlayStation Details</h2><br>
                 <h3>{{ form.ps_os.label }}:</h3> {{ form.ps_os }}<br>
                 <h3>{{ form.ps_storage.label }}:</h3> {{ form.ps_storage }}<br>
                 <h3>{{ form.ps_price.label }}:</h3> {{ form.ps_price }}<br>
                 <h3>{{ form.ps_release_date.label }}:</h3> {{ form.ps_release_date }}<br>
             </div>
-            <div id="xb_requirements" style="display: none;">
+            <div id="xb_requirements" class="requirement_form">
                 <h2>Xbox Details</h2><br>
                 <h3>{{ form.xb_os.label }}:</h3> {{ form.xb_os }}<br>
                 <h3>{{ form.xb_storage.label }}:</h3> {{ form.xb_storage }}<br>

@@ -5,7 +5,7 @@
 <head>
     <title>Categories</title>
 </head>
-<h2 style="color: white;">Categories</h2>
+<h2 class="heading">Categories</h2>
 {% if categories %}
 <ul>
     <div class="all_grid_container">
@@ -13,7 +13,8 @@
         <a href="/category/{{ category.CategoryID }}" class="grid_link">
             <div class="all_grid_item">
                 {{ category.CategoryName }}<br>
-                <img src="{{ url_for('static', filename='images/icon.png') }}" width="75px" height="75px">
+                <img src="{{ url_for('static', filename='images/' ~ (category.CategoryImage or 'icon.png')) }}"
+                    height="300px" width="300px"><br>
             </div>
         </a>
         {% endfor %}
