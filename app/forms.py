@@ -138,3 +138,10 @@ class AdminGameForm(FlaskForm):
     xb_release_date = DateField("Release Date", format="%Y-%m-%d", validators=[Optional()])
 
     submit = SubmitField("Add Game")
+
+    def validate_game_name(self, field):
+        game_name = field.data.strip()
+        existing_game = routes.execute_query(models.Games, operation="SELECT", filters={"GameName": game_name})
+        if existing_game:
+            if not hasattr(self, "game_id") or existing_game[0].GameID != self.game_id:
+                raise ValidationError("Game name already exists")

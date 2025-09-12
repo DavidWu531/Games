@@ -6,7 +6,7 @@ from flask import render_template, abort, redirect, session, request, flash
 from flask_sqlalchemy import SQLAlchemy
 import os
 from flask_bcrypt import Bcrypt
-from sqlalchemy import exc, asc, desc
+from sqlalchemy import exc
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 db = SQLAlchemy()
@@ -103,25 +103,6 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
             db.session.commit()
             return []  # Returns empty list, indicates data deleted
 
-        # NAVIGATION OPERATION
-        elif operation == "NAVIGATION":
-            if id is None:
-                abort(400, "ID not provided")
-
-            # Get first column in primary key of model
-            id_column = list(model.__table__.primary_key.columns)[0]
-            id_attr_name = id_column.name  # Name of column as string
-
-            # Grab first row less than current row
-            prev_row = model.query.filter(id_column < id).order_by(desc(id_column)).first()
-            # Grab first row bigger than current row
-            next_row = model.query.filter(id_column > id).order_by(asc(id_column)).first()
-            return {
-                # Get ID column value based on name of primary key
-                "prev_id": getattr(prev_row, id_attr_name) if prev_row else 0,
-                "next_id": getattr(next_row, id_attr_name) if next_row else None
-            }  # 0 indicates no previous item (e.g., show 'Back to List'), None means no next item
-
         else:
             abort(400, description="Invalid operation")
 
@@ -215,6 +196,7 @@ def login():
         # Check if password matches hashed version
         if user and bcrypt.check_password_hash(user.AccountPassword, form.password.data):
             session['AccountID'] = user.AccountID  # Logs user in
+            session['AccountUsername'] = user.AccountUsername
             return redirect("/dashboard")
         else:
             # Fail log in, show error message and reload page
@@ -253,8 +235,7 @@ def register():
 
 @app.route('/logout')
 def logout():
-    if "AccountID" in session:
-        session.pop("AccountID", None)
+    session.clear()
     return redirect('/game/0')
 
 
@@ -269,7 +250,7 @@ def delete():
     except Exception as e:  # noqa F841
         print("An error occurred, please try again later")
     else:
-        session.pop("AccountID", None)
+        session.clear()
     return redirect('/game/0')
 
 
@@ -310,7 +291,8 @@ def admin():
 # Home Page Route
 @app.route('/')
 def home_page():
-    return render_template('home.html')
+    return redirect('/game/0')
+    # return render_template('home.html')
 
 
 # About Page Route
@@ -378,11 +360,8 @@ def game(id):
                                       filters={"GameID": id, "Type": platform_key[chosen_platform],
                                                "PlatformID": platform_id[chosen_platform]})
 
-        # Miscellaneous: Get next and previous GameID for navigation
-        nav_ids = execute_query(models.Games, operation="NAVIGATION", id=id)
         return render_template('individual_games.html', games=games, user_rating=user_rating, is_admin=is_admin,
-                               chosen_platform=chosen_platform, platform_detail=platform_detail,
-                               system_detail=system_detail, prev_id=nav_ids["prev_id"], next_id=nav_ids["next_id"])
+                               chosen_platform=chosen_platform, platform_detail=platform_detail, system_detail=system_detail)
 
 
 # Displays platforms, allows id=0 for redirecting
@@ -582,6 +561,7 @@ def update_game(id):
     game = game[0]
     form = AdminGameForm(obj=game)
     form.submit.label.text = "Update Game"
+    form.game_id = id
 
     # Load all categories and platforms
     all_categories = execute_query(models.Categories, operation="SELECT")

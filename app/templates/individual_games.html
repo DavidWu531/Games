@@ -22,7 +22,7 @@
             <a href="/admin/game/update/{{ game.GameID }}">
                 <img src="{{ url_for('static', filename='images/pen.png') }}" height="50px" width="50px">
             </a>
-            <a href="javascript:void(0);" onclick="delete_game({{ game.GameID }})">
+            <a href="javascript:void(0);" onclick="delete_game('{{ game.GameID }}')">
                 <img src="{{ url_for('static', filename='images/bin.png')}}" height="50px" width="50px">
             </a>
             {% endif %}
@@ -160,7 +160,7 @@
                         <th>Value</th>
                     </tr>
                     <tr>
-                        <td>Price</td>
+                        <td>Price (NZD)</td>
                         <td>${{ ("%.2f"|format(data.Price)) if data.Price > -1 else "N/A" }}</td>
                     </tr>
                     <tr>
@@ -168,10 +168,6 @@
                         <td>{{ data.ReleaseDate if data.ReleaseDate|string != "1900-01-01" else "TBA" }}</td>
                     </tr>
                 </table>
-                <!-- <p>
-                Price: ${{ ("%.2f"|format(data.Price)) if data.Price > -1 else "N/A" }}<br>
-                Release Date: {{ data.ReleaseDate if data.ReleaseDate|string != "1900-01-01" else "TBA" }}<br>
-            </p> -->
                 {% endif %}
                 {% endfor %}
             </ul>
@@ -184,32 +180,5 @@
         <p>No games found.</p>
         {% endif %}
     </div>
-</div>
-<div>
-    <!--Navigation-->
-    {% if games %}
-    {% for game in games %}
-    {% if prev_id %}
-    <a href="/game/{{ prev_id }}" style="float: left">
-        <button type="submit" class="navigation">
-            <p>← Previous Game</p>
-        </button>
-    </a>
-    {% else %}
-    <a href="/game" style="float: left">
-        <button type="submit" class="navigation">
-            <p>← Back to all games</p>
-        </button>
-    </a>
-    {% endif %}
-    {% if next_id %}
-    <a href="/game/{{ next_id }}" style="float: right">
-        <button type="submit" class="navigation">
-            <p>Next Game →</p>
-        </button>
-    </a>
-    {% endif %}
-    {% endfor %}
-    {% endif %}
 </div>
 {% endblock %}

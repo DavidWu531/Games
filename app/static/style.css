@@ -12,6 +12,11 @@ html, body {
     flex-direction: column;
 }
 
+@keyframes fadeIn {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
 body#bg_image {
     background-image: url("images/bg.jpg"); 
     background-size: cover;
@@ -47,6 +52,18 @@ li a {
     font-size: 24px;
 }
 
+li img {
+    vertical-align: middle;
+}
+
+li.align_right a {
+    padding: 12.25px 16px;
+}
+
+li.align_right form {
+    padding: 3px;
+}
+
 li a:hover {
     background-color: #111;
 }
@@ -78,6 +95,12 @@ li a:hover {
     padding: 20px;
     font-size: 30px;
     text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.all_grid_item:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
 footer {
@@ -92,6 +115,7 @@ footer {
     justify-content: center;
     align-items: center;
     position: relative;
+    height: 75vh;
 }
 
 .account_border {
@@ -206,6 +230,7 @@ input {
 
 .grid_link {
     color: inherit;
+    display: block;
 }
 
 td, th {
@@ -227,8 +252,6 @@ tr:nth-child(even) {
     "bottom-row";
     grid-template-rows: auto auto auto;
     padding: 20px;
-    /* justify-content: start;
-    align-items: start; */
 }
 
 .top-row {
@@ -363,4 +386,8 @@ select#platforms {
     display: grid;
     grid-template-columns: repeat(6, 170px);
     gap: 10px;
+}
+
+.page_load {
+    animation: fadeIn 1s ease-out forwards
 }
