@@ -10,7 +10,10 @@
 <body>
     <div class="center">
         <h2 class="home_message">
-            Error {{ code }}<br>{{ message }}</h2>
+            {% if code in [404, 500] %}
+            Error {{ code }}<br>
+            {% endif %}
+            {{ message }}</h2>
         <a href="/game/0" class="go_back_link">
             <button class="go_back">
                 <p>Go Back</p>

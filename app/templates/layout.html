@@ -15,7 +15,6 @@
     <header>
         <nav>
             <ul>
-                <li><a href="/">Home</a></li>
                 <li><a href="/platform">Platforms</a></li>
                 <li><a href="/game">Games</a></li>
                 <li><a href="/category">Categories</a></li>
@@ -23,6 +22,9 @@
                 <li class="align_right">
                     <a href="/dashboard">
                         <img src="{{ url_for('static', filename='images/icon.png') }}" width="30" height="30">
+                        {% if session %}
+                        {{ session.AccountUsername }}
+                        {% endif %}
                     </a>
                 </li>
                 <li class="align_right">
@@ -33,7 +35,7 @@
             </ul>
         </nav>
     </header>
-    <main>
+    <main class="page_load">
         {% block content %}
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -44,9 +46,6 @@
         {% endwith %}
         {% endblock %}
     </main>
-    <footer>
-        <p>This is the footer</p>
-    </footer>
 </body>
 
 </html>
