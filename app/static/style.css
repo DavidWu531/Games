@@ -352,7 +352,7 @@ select#platforms {
     transform: translate(-50%)
 }
 
-.heading {
+.heading, .home_message {
     color: white;
     text-shadow:
         2px 2px 0 black,
@@ -361,14 +361,17 @@ select#platforms {
         -2px -2px 0 black;
 }
 
-.home_message {
-    color: white;
-    text-shadow:
-        2px 2px 0 black,
-        -2px 2px 0 black,
-        2px -2px 0 black,
-        -2px -2px 0 black;
+p.heading {
+    font-size: 24px
+}
+
+h2.home_message {
     font-size: 40px;
+    text-align: center;
+}
+
+p.home_message {
+    font-size: 28px;
     text-align: center;
 }
 
@@ -390,4 +393,8 @@ select#platforms {
 
 .page_load {
     animation: fadeIn 1s ease-out forwards
+}
+
+.game_info {
+    font-size: 32px
 }

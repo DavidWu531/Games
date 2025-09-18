@@ -31,10 +31,13 @@
             <!-- Game Icon and Name -->
             <img src="{{ url_for('static', filename='images/' ~ (game.GameImage or 'icon.png')) }}" height="250px"
                 width=250px"><br>
-            <p>{{ game.GameName }}</p>
+            <p class="game_info">
+                {{ game.GameName }}<br>
+                <strong>By: {{ game.GameDeveloper }}</strong>
+            </p>
 
             <!-- Rating System -->
-            {% if session %}
+            {% if session.AccountID %}
             <div class="game_rating">
                 <form method="POST" action="/rate_game/{{ game.GameID }}">
                     <div class="stars_counter">

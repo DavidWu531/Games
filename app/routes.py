@@ -58,7 +58,7 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
         # INSERT OPERATION
         elif operation == "INSERT":
             if not data:
-                abort(400, description="Cannot insert data")
+                abort(404, description="Cannot insert data")
             record = model(**data)  # Create new record
             db.session.add(record)
             db.session.commit()
@@ -67,16 +67,16 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
         # UPDATE OPERATION
         elif operation == "UPDATE":
             if not isinstance(data, dict) or not data:
-                abort(400, description="No updated data provided")
+                abort(404, description="No updated data provided")
             record = None
             if id is not None:
                 record = model.query.get_or_404(id)  # Get existing record
             elif filters:
                 record = model.query.filter_by(**filters).first()
                 if not record:
-                    abort(400, description="Record not found")
+                    abort(404, description="Record not found")
             else:
-                abort(400, description="No ID or filters provided")
+                abort(404, description="No ID or filters provided")
             for key, value in data.items():
                 setattr(record, key, value)  # Update each field
             db.session.commit()
@@ -85,7 +85,7 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
         # DELETE OPERATION
         elif operation == "DELETE":
             if id is None and not filters:
-                abort(400, description="ID or filters must be provided")
+                abort(404, description="ID or filters must be provided")
 
             if id is not None:
                 record = model.query.get_or_404(id)  # Get existing record
@@ -104,81 +104,41 @@ def execute_query(model, operation='SELECT', id=None, data=None, filters=None, s
             return []  # Returns empty list, indicates data deleted
 
         else:
-            abort(400, description="Invalid operation")
+            abort(404, description="Invalid operation")
 
     # ERROR HANDLING
     except OverflowError:
-        abort(400, description="Invalid ID format")  # More appropriate than 404
+        abort(500, description="Value too large for system to handle")
 
     except exc.NoResultFound:
         abort(404, description="Data not found")
 
-    except exc.IntegrityError as e:
+    except exc.SQLAlchemyError:
         db.session.rollback()
-        if "unique constraint" in str(e).lower():
-            abort(409, description="Duplicate entry detected")  # Specific 409 for conflicts
-        abort(400, description="Database constraint violation")
-
-    except exc.OperationalError:
-        db.session.rollback()
-        abort(503, description="Database service unavailable")  # For connection issues
-
-    except exc.SQLAlchemyError as e:
-        db.session.rollback()
-        abort(500, description=f"Database operation failed: {str(e)}")
+        abort(500, description="Database operation failed")
 
     except HTTPException:
-        raise  # Re-raise existing HTTP errors
+        raise  # Keep any explicitly raised HTTP errors
 
-    except Exception as e:
+    except Exception:
         db.session.rollback()
-        abort(500, description=f"Internal server error: {str(e)}")
+        abort(500, description="Internal server error")
 
 
 # All errors use the same render template, but their code, title, and message are different when rendered
 @app.errorhandler(HTTPException)
 def handle_http_errors(e):
     error_responses = {
-        400: {
-            "title": "Bad Request",
-            "message": "Invalid request parameters"
-        },
-        401: {
-            "title": "Unauthorized",
-            "message": "Authentication required"
-        },
-        403: {
-            "title": "Forbidden",
-            "message": "You don't have permission"
-        },
-        404: {
-            "title": "Not Found",
-            "message": "Resource not found"
-        },
-        409: {
-            "title": "Conflict",
-            "message": "Data conflict detected"
-        },
-        500: {
-            "title": "Internal Server Error",
-            "message": "An unexpected error occurred"
-        },
-        503: {
-            "title": "Service Unavailable",
-            "message": "Database maintenance in progress"
-        }
+        404: {"title": "Page Not Found", "message": "Page Not Found"},
+        500: {"title": "Internal Server Error", "message": "An unexpected error occurred"}
     }
 
     # Get the response for the specific error code or use a default
-    response = error_responses.get(e.code, {"title": "HTTP Error", "message": getattr(e, "description", str(e))})
+    response = error_responses.get(e.code, error_responses[500])
 
     # Allow custom messages from abort() calls to override defaults
-    if hasattr(e, "description"):
+    if e.description and e.description != e.__class__.description:
         response["message"] = e.description
-
-    # Code 404 overrides default to "Page Not Found"
-    if e.code == 404:
-        error_responses[404]["message"] = "Page Not Found"
 
     return render_template("error.html", code=e.code, title=response["title"], message=response["message"]), e.code
 
@@ -394,14 +354,17 @@ def search():
         games = execute_query(models.Games, search_fields={"GameName": query})
     else:  # Grab all if no input
         games = execute_query(models.Games)
-    return render_template('all_games.html', games=games)
+    return render_template('all_games.html', games=games, query=query)
 
 
-@app.route('/rate_game/<int:id>', methods=["POST"])
+@app.route('/rate_game/<int:id>', methods=["GET", "POST"])
 def rate_game(id):
+    if request.method == "GET":
+        abort(404, description="Direct access to this page is not allowed")
+
     user_id = session.get("AccountID")
     if not user_id:  # Ensures only logged-in users can rate
-        abort(401, "Rating is restricted to logged-in users only")
+        abort(404, description="Rating is restricted to logged-in users only")
 
     if id == 0:
         return redirect("/game/0")

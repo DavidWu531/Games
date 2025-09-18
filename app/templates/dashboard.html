@@ -5,11 +5,17 @@
     <title>Dashboard</title>
 </head>
 <div class="dashboard">
-    <p style="color: white;">Welcome, {{ username }}!</p>
-    <a href="/logout" class="logout_button">Log Out</a><br><br>
-    <a href="javascript:void(0);" onclick="delete_account()" class="delete_button">Delete Account</a><br><br>
+    <h1 class="heading">Welcome, {{ username }}!</h1><br><br>
     {% if is_admin %}
+        <p class="heading">Admin Exclusives</p>
+        <h4 class="heading">Create and showcase a new game</h4>
         <a href="/admin/game/add" class="add_game_button">Add Game</a>
+        <hr><br><br>
     {% endif %}
+    <p class="heading">Session Termination</p>
+    <h4 class="heading">Sign out securely</h4>
+    <a href="/logout" class="logout_button">Log Out</a><br><br>
+    <h4 class="heading">Permanently delete your account</h4>
+    <a href="javascript:void(0);" onclick="delete_account()" class="delete_button">Delete Account</a><br><br>
 </div>
 {% endblock %}
